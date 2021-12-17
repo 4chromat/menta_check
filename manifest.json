@@ -1,0 +1,12 @@
+{
+  "manifest_version": 3,
+  "name": "Menta Check",
+  "description": "n",
+  "version": "0.1",
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html"
+  }
+}
