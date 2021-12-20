@@ -78,8 +78,9 @@ function getAllURL() {
 function mainProcess(url, openseaURL, twitterURL) {
   console.log(openseaURL + " " + twitterURL )
   var openseaSlug = ""
-  var twitterSlug = ""
+  var twitterUsername = ""
 
+  // To do: Return list of usernames and slugs as there may be more than one
   // making sure the url for slug is a valid opensea link
   if (url.indexOf("https://opensea.io/collection/") > -1) {
     openseaURL = url
@@ -92,7 +93,7 @@ function mainProcess(url, openseaURL, twitterURL) {
   }
   if (twitterURL != "") {
     var a = twitterURL.split("/");
-    twitterSlug = a[1]
+    twitterUsername = a[1]
   }
 
   // TODO:

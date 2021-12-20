@@ -1,11 +1,16 @@
+require('dotenv').config();
+
 const start = Date.now();
 
 const runTest = false;
 
-const base_twitter_username = 'worldofwomennft'
+// Todo: update username to 'id' twitters unique identifier
+const base_twitter_username = 'crypto_coven';    // twitterUsername in popus.js
 
-const base_opensea_slug = 'world-of-women-nft'  // slug is OpenSea's unique collection name
+// slug is OpenSea's unique collection name
+const base_opensea_slug = 'cryptocoven';    // openseaSlug in popus.js
 
+const base_website = 'https://www.cryptocoven.xyz/';    // tab.url in popus.js
 
 
 //-----------------------------------------------
@@ -22,9 +27,10 @@ const needle = require('needle');
 
 const bearerToken = process.env.BEARER_TOKEN;
 
-const twitterEndpointURL = "https://api.twitter.com/2/users/by?usernames="
+const twitterEndpointURL = "https://api.twitter.com/2/users/by?usernames=";
 
 const twitterFieldsArray = [
+
     'created_at',
     'description',
     'entities',
@@ -35,7 +41,7 @@ const twitterFieldsArray = [
     'url',
     'username',
     'verified'
-]
+];
 
 async function getTwitterRequest(username) {
 
@@ -56,8 +62,7 @@ async function getTwitterRequest(username) {
     if (res.body) {
         return res.body;
     } else {
-        console.log(res.body);
-        throw new Error('Unsuccessful Twitter request')
+        throw new Error('Unsuccessful Twitter request');
     }
 }
 
@@ -68,19 +73,22 @@ async function transformTwitterResponse(username) {
         const response = await getTwitterRequest(username);
 
         // Parsing of response continues async
-        const data = response['data'][0]
+        const data = response['data'][0];
 
-        data['expanded_url'] = data['entities']['url']['urls'][0]['expanded_url']
-        data['followers_count'] = data['public_metrics']['followers_count']
-        data['following_count'] = data['public_metrics']['following_count']
-        data['tweet_count'] = data['public_metrics']['tweet_count']
+        data['expanded_url'] = data['entities']['url']['urls'][0]['expanded_url'];
+        data['followers_count'] = data['public_metrics']['followers_count'];
+        data['following_count'] = data['public_metrics']['following_count'];
+        data['tweet_count'] = data['public_metrics']['tweet_count'];
 
         delete data['entities'];
         delete data['public_metrics'];
 
+        data['status'] = 'completed';
+
         return data;
 
     } catch (e) {
+        // console.log(e);
         return {
             'status': 'failed',
             'errorMessage': `${e}`
@@ -96,9 +104,10 @@ async function transformTwitterResponse(username) {
 
 const openseaKey = process.env.OPENSEA_API_KEY;
 
-const openseaEndpointURL = "https://api.opensea.io/api/v1/collection/"
+const openseaEndpointURL = "https://api.opensea.io/api/v1/collection/";
 
 const openseaAttributesArray = [
+
     'created_date',
     'description',
     'external_url',
@@ -107,9 +116,10 @@ const openseaAttributesArray = [
     'is_subject_to_whitelist',
     'safelist_request_status',
     'twitter_username'
-]
+];
 
 const openseaStatsArray = [
+
     'average_price',
     'count',
     'floor_price',
@@ -119,12 +129,13 @@ const openseaStatsArray = [
     'total_sales',
     'total_supply',
     'total_volume'
-]
+];
 
 const openseaContractsArray = [
+
     'address',
     'payout_address'
-]
+];
 
 async function getOpenseaRequest(collectionName) {
 
@@ -138,8 +149,7 @@ async function getOpenseaRequest(collectionName) {
     if (res.body) {
         return res.body;
     } else {
-        console.log(res.body);
-        throw new Error('Unsuccessful OpenSea request')
+        throw new Error('Unsuccessful OpenSea request');
     }
 }
 
