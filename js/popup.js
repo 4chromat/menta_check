@@ -1,3 +1,5 @@
+
+
 window.addEventListener("DOMContentLoaded", () => {
     var button = document.getElementById("mentaCheck")
     //var bg = chrome.extension.getBackgroundPage();
@@ -10,13 +12,11 @@ window.addEventListener("DOMContentLoaded", () => {
         target: { tabId: tab.id },
         function: getAllURL
       }, (injectionResults) => {
-       // console.log(injectionResults[0])
+        //console.log( injectionResults[0].result)
         let openseaURL = injectionResults[0].result[0]
         let twitterURL = injectionResults[0].result[1]
         mainProcess(tab.url, openseaURL, twitterURL)
-                
     });
-    
     })
 })
   
@@ -24,13 +24,34 @@ window.addEventListener("DOMContentLoaded", () => {
 //-----------------------------------------------
 // UI FUNCTIONS
 //-----------------------------------------------
-function setResults() {
- 
+function setResults(dataObj) {
+ console.log(dataObj)
+  let twitterV = dataObj.rating.is_twitter_verified
+  let twitterM = dataObj.rating.is_twitter_link_same_website
+
+  let openSeaV = true
+  let openMdataObj = dataObj.rating.is_opensea_link_same_website
+
   var resultList = document.getElementById("resultList")
   resultList.innerHTML = '';
   resultList.appendChild( createListDiv("", ""));
-  resultList.appendChild( createListDiv("OpenSea Verified", "good"));
-  resultList.appendChild( createListDiv("Twitter Verified", "good"));
+
+  // settting openSea data
+  if (openSeaV)
+    resultList.appendChild( createListDiv("OpenSea Verified", "ver"));
+  if(openMdataObj)
+    resultList.appendChild( createListDiv("OpenSea Match", "good"));
+  else 
+    resultList.appendChild( createListDiv("OpenSea Match", "bad"));
+
+  // setting twitter data
+  if(twitterV)
+    resultList.appendChild( createListDiv("Twitter Verified", "ver"));
+  if(twitterM)
+    resultList.appendChild( createListDiv("Twitter Match", "good"));
+  else 
+    resultList.appendChild( createListDiv("Twitter Match", "bad"));
+  
 }
 
 
@@ -41,7 +62,8 @@ function createListDiv(info, iconStatus) {
     var text = document.createElement("p");
     var span = document.createElement("span");
     var icon = "icon-good"
-    if(iconStatus != "good") { icon = "icon-bad"; }
+    if(iconStatus == "bad") { icon = "icon-bad"; }
+    if(iconStatus == "ver") { icon = "icon-ver"; }
     span.className = "icon-span "+ icon;
     content.appendChild(span);
     text.textContent = info;
@@ -53,59 +75,72 @@ function createListDiv(info, iconStatus) {
 }
 //-----------------------------------------------
 function getAllURL() {
-  var opensea = "";
-  var twitter = "";
+  var opensea =[];
+  var twitter = [];
   var urls = document.getElementsByTagName("a");
 
     for (var i=0; i< urls.length; i++) {
       var cur = urls[i].getAttribute('href');
-      //console.log(cur)
+      console.log(cur)
       if (cur.indexOf("https://opensea.io/collection/") > -1) {
-        opensea = cur;
+        opensea.push(cur);
       }
       if (cur.indexOf("https://www.twitter.com") > -1 || cur.indexOf("https://twitter.com") > -1) {
-        twitter = cur;
+        twitter.push(cur);
       }
     }
-
-    //console.log(opensea)
-    //console.log(twitter)
+    // console.log(opensea)
+    // console.log(twitter)
     return [opensea, twitter]
 }
 
-
 // main function grabs slugs and runs API for restuls
-function mainProcess(url, openseaURL, twitterURL) {
-  console.log(openseaURL + " " + twitterURL )
-  var openseaSlug = ""
-  var twitterUsername = ""
-
+async function mainProcess(url, openseaURLs, twitterURLs) {
+  var openseaSlugArray = []
+  var twitterUsernameArray = []
+  console.log("main processs:")
   // To do: Return list of usernames and slugs as there may be more than one
   // making sure the url for slug is a valid opensea link
   if (url.indexOf("https://opensea.io/collection/") > -1) {
-    openseaURL = url
+    // before adding make sure not duplicate
+    if(!isDuplicate(openseaURLs, url))
+      openseaURLs.push(url)
   }
-  console.log(openseaURL + " " +  twitterURL)
+  
   // getting slug
-  if (openseaURL != "") {
+  for(var url in openseaURLs) {
       // To do: split each url result and save in array 
-      var a = openseaURL.split("/");
-      openseaSlugArray = a[4]
+      var a = openseaURLs[url].split("/");
+      openseaSlugArray.push(a[4])
   }
-  if (twitterURL != "") {
+  for(var url in twitterURLs) {
     // To do: split each url result and save in array 
-    var a = twitterURL.split("/");
-    twitterUsernameArray = a[1]
+    var a = twitterURLs[url].split("/");
+    twitterUsernameArray.push(a[ a.length-1])
   }
-
+  console.log("openseaSlugArray:")
+  console.log(openseaSlugArray)
+  console.log("twitterUsernameArray")
+  console.log(twitterUsernameArray)
   // TODO:
   // api calls with slugs
+  // var twitterData = await getTwitterRequest(twitterUsernameArray)
 
   // analyce API data for resuls
-  setResults()
+  var tmpObj = tempObj();
+
+  setResults(tmpObj)
 
 }
 
+function isDuplicate(array, tmp) {
+  for(var url in array) {
+    if(url == tmp){
+      return true
+    }
+  }
+  return false
+}
 
 function isValidURL(string) {
   var res = string.match(/(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/g);

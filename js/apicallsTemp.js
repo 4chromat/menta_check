@@ -62,10 +62,11 @@ const needle = require('needle');
 
 const bearerToken = process.env.BEARER_TOKEN;
 
-const twitterEndpointURL = "https://api.twitter.com/2/users/by?usernames=";
+const twitterEndpointURL = "https://api.twitter.com/2/users/by/username/:username"
+//"https://api.twitter.com/2/users/by?usernames=";
+
 
 const twitterFieldsArray = [
-
     'created_at',
     'description',
     'entities',
@@ -80,6 +81,8 @@ const twitterFieldsArray = [
 
 async function getTwitterRequest(username) {
 
+   
+    console.log(username)
     // Parameters for the API request
     const params = {
         usernames: username,
@@ -95,8 +98,10 @@ async function getTwitterRequest(username) {
     })
 
     if (res.body) {
+        console.log("getTwitterRequest " + twitterEndpointURL + " " + params)
         return res.body;
     } else {
+       
         throw new Error('Unsuccessful Twitter request');
     }
 }
