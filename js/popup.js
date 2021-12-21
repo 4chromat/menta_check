@@ -88,12 +88,14 @@ function mainProcess(url, openseaURL, twitterURL) {
   console.log(openseaURL + " " +  twitterURL)
   // getting slug
   if (openseaURL != "") {
+      // To do: split each url result and save in array 
       var a = openseaURL.split("/");
-      openseaSlug = a[4]
+      openseaSlugArray = a[4]
   }
   if (twitterURL != "") {
+    // To do: split each url result and save in array 
     var a = twitterURL.split("/");
-    twitterUsername = a[1]
+    twitterUsernameArray = a[1]
   }
 
   // TODO:
