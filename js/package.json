@@ -1,6 +1,0 @@
-{
-  "dependencies": {
-    "dotenv": "^10.0.0",
-    "needle": "^3.0.0"
-  }
-}

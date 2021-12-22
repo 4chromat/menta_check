@@ -1,48 +1,21 @@
-// Note:
-// All code notation in lowerCamelCase, all variables FROM API and TO Database with underscore.
-
-// To do: Split in multiple files / functions
-
-require('dotenv').config();
-
-const start = Date.now();
-
-const runTest = false;
-
-const baseWebsite = 'https://www.cryptocoven.xyz/';  // tab.url in popus.js
-
-const twitterUsernameArray = ['crypto_coven']
-
-const openseaSlugArray = ['cryptocoven']
-
-const baseTwitterUsername = twitterUsernameArray[0];
-
-const baseOpenseaSlug = openseaSlugArray[0];
-
-(async function () {
-
-    const result = await confidenceRating();
-
-    console.log(result)
-
-})();
-
-
 //-----------------------------------------------
 // API FUNCTIONS
 //-----------------------------------------------
-
-const needle = require('needle');
+import axios from "axios";
 
 // Twitter Data Collection
 // Twitter API call as in Twitter-API-v2-sample-code
 // https://github.com/twitterdev/Twitter-API-v2-sample-code/blob/main/User-Lookup/get_users_with_bearer_token.js
 // https://developer.twitter.com/en/docs/twitter-api/users/lookup/api-reference/get-users-by-username-username
 
-const bearerToken = process.env.BEARER_TOKEN;
+import {getBearerToken, getOpenseaKey} from './getApiKeys.js'
+//const bearerToken = process.env.BEARER_TOKEN;
+// const bearerToken = getBearerToken();
 
 const twitterEndpointURL = "https://api.twitter.com/2/users/by?usernames=";
 
+const start = Date.now();
+const runTest = false;
 
 const twitterFieldsArray = [
     'created_at',
@@ -58,35 +31,34 @@ const twitterFieldsArray = [
 ];
 
 async function getTwitterRequest(username) {
-
+    const bearerToken = getBearerToken();
     // Parameters for the API request
     const params = {
         usernames: username,
-        "user.fields": twitterFieldsArray.join(',')
+        "user.fields": twitterFieldsArray.join(','),
     }
-
-    // HTTP header that adds Twitter's bearer token authentication
-    const res = await needle('get', twitterEndpointURL, params, {
-        headers: {
-            "User-Agent": "v2UserLookupJS",
-            "authorization": `Bearer ${bearerToken}`
+    try {
+        // HTTP header that adds Twitter's bearer token authentication   "User-Agent": "v2UserLookupJS",
+        const geturlParams = twitterEndpointURL + username + "&user.fields="+twitterFieldsArray.join(',')
+        const res = await axios.get(geturlParams, {
+            headers: {
+            Authorization:  `Bearer ${bearerToken}`
+            }
+        }) 
+        if (res.data) {
+            return res.data;
+        } else {
+            throw new Error('Unsuccessful Twitter request');
         }
-    })
-
-    if (res.body) {
-        console.log("getTwitterRequest " + twitterEndpointURL + " " + params)
-        return res.body;
-    } else {
-        throw new Error('Unsuccessful Twitter request');
-    }
+    }catch (error) {
+       console.log(error)
+      }
 }
 
 // OpenSea Data Collection
 // OpenSea API call as in API Reference 'Retrieving a single collection'
 // https://docs.opensea.io/reference/retrieving-a-single-collection
 // https://docs.opensea.io/reference/collection-model
-
-const openseaKey = process.env.OPENSEA_API_KEY;
 
 const openseaEndpointURL = "https://api.opensea.io/api/v1/collection/";
 
@@ -124,22 +96,21 @@ const openseaContractsArray = [
 ];
 
 async function getOpenseaRequest(collectionName) {
+    const openseaKey = getOpenseaKey()
 
     // API Request with HTTP header that adds OpenSea API key
-    const res = await needle('get', openseaEndpointURL + collectionName, {
+    const geturlParams = openseaEndpointURL + collectionName
+    const res = await axios.get(geturlParams, {
         headers: {
             "X-API-KEY": `${openseaKey}`
         }
-    })
-
-    if (res.body) {
-        return res.body;
+    }) 
+    if (res.data) {
+        return res.data;
     } else {
         throw new Error('Unsuccessful OpenSea request');
     }
 }
-
-
 
 //-----------------------------------------------
 // TRANSFORM FUNCTIONS
@@ -210,14 +181,14 @@ async function transformOpenseaResponse(collectionName) {
     }
 }
 
-function transformWebsiteScrape(baseWebsite) {
+function transformWebsiteScrape(mentaObj) {
 
     try {
 
         const data = {
-            'url': baseWebsite,
-            'twitter_username_array': twitterUsernameArray,
-            'opensea_slug_array': openseaSlugArray
+            'url': mentaObj.baseWebsite,
+            'twitter_username_array': mentaObj.twitterUsernameArray,
+            'opensea_slug_array': mentaObj.openseaSlugArray
         };
 
         data['status'] = 'completed';
@@ -239,19 +210,19 @@ function transformWebsiteScrape(baseWebsite) {
 //-----------------------------------------------
 
 //  Data collection from Twitter and OpenSea
-async function collectData() {
+async function collectData(mentaObj) {
 
-    const websiteData = transformWebsiteScrape(baseWebsite);
+    const websiteData = transformWebsiteScrape(mentaObj);
 
-    const twitterData = await transformTwitterResponse(baseTwitterUsername);
+    const twitterData = await transformTwitterResponse(mentaObj.baseTwitterUsername);
 
-    const openseaData = await transformOpenseaResponse(baseOpenseaSlug);
+    const openseaData = await transformOpenseaResponse(mentaObj.baseOpenseaSlug);
 
-    data = {
+    var data = {
 
-        'baseTwitter': baseTwitterUsername,
-        'baseSlug': baseOpenseaSlug,
-        'baseWebsite': baseWebsite,
+        'baseTwitter': mentaObj.baseTwitterUsername,
+        'baseSlug': mentaObj.baseOpenseaSlug,
+        'baseWebsite': mentaObj.baseWebsite,
         'twitterData': twitterData,
         'openseaData': openseaData,
         'websiteData': websiteData
@@ -261,20 +232,18 @@ async function collectData() {
 }
 
 //  Annotate confidence flags
-async function confidenceFlags() {
-
-    const data = await collectData();
-
+async function confidenceFlags(mentaObj, data) {
     const rating = {};
 
     // Specs on sameness 
     // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Equality_comparisons_and_sameness
     rating['is_twitter_verified'] = data['twitterData']['verified'] === true;
-    rating['is_opensea_safelist'] = data['openseaData']['safelist_request_status'] === 'verified';
-    rating['is_twitter_link_same_website'] = data['twitterData']['expanded_url'] === baseWebsite;
-    rating['is_opensea_link_same_website'] = data['openseaData']['external_url'] === baseWebsite;
-    rating['is_twitter_username_in_website'] = data['twitterData']['username'] === twitterUsernameArray[0];
-    rating['is_slug_in_website'] = data['openseaData']['slug'] === openseaSlugArray[0];
+    rating['is_opensea_safelist'] = data['openseaData']['safelist_request_status'] === '"approved"';
+    //rating['is_twitter_username_match_opensea_twitter'] = data['openseaData']['safelist_request_status'] === '"approved"';
+    rating['is_twitter_link_same_website'] = data['twitterData']['expanded_url'] === mentaObj.baseWebsite;
+    rating['is_opensea_link_same_website'] = data['openseaData']['external_url'] === mentaObj.baseWebsite;
+    rating['is_twitter_username_in_website'] = data['twitterData']['username'] === mentaObj.twitterUsernameArray[0];
+    rating['is_slug_in_website'] = data['openseaData']['slug'] === mentaObj.openseaSlugArray[0];
     rating['is_twitter_username_in_blocklist'] = false  // To do: create Blocklist
     rating['is_opensea_slug_in_blocklist'] = false  // To do: create Blocklist
     rating['is_website_in_blocklist'] = false  // To do: create Blocklist
@@ -286,12 +255,10 @@ async function confidenceFlags() {
 //  Assign A-F rating
 // To do: add recommended sites in rating
 // TBC: All ratings need more insights
-async function confidenceRating() {
-
-    const data = await collectData();
-
-    const rating = await confidenceFlags();
-
+async function confidenceRating(mentaObj) {
+  console.log(mentaObj)
+    const data = await collectData(mentaObj);
+    const rating = await confidenceFlags(mentaObj, data);
     if ( // Accounts are verified and match then rate 'A'
 
         rating['is_twitter_verified'] &&
@@ -300,33 +267,22 @@ async function confidenceRating() {
         rating['is_opensea_link_same_website'] &&
         rating['is_twitter_username_in_website'] &&
         rating['is_slug_in_website']
-
     ) {
-
         rating['rate'] = 'A';
-
     } else if ( // Accounts not verified but match then rate 'B'
-
         rating['is_twitter_link_same_website'] &&
         rating['is_opensea_link_same_website'] &&
         rating['is_twitter_username_in_website'] &&
         rating['is_slug_in_website']
-
     ) {
-
         rating['rate'] = 'B';
-
     } else if ( // Accounts not verified, mismatch, or data clash then rate 'C'  
-
         rating['is_twitter_link_same_website'] ||
         rating['is_opensea_link_same_website'] ||
         rating['is_twitter_username_in_website'] ||
         rating['is_slug_in_website']
-
     ) {
-
         rating['rate'] = 'C';
-
     } else if ( // Accounts not verified, mismatch, and data clash then rate 'D'
 
         !(rating['is_twitter_link_same_website'] ||
@@ -370,3 +326,4 @@ async function confidenceRating() {
 
 }
 
+export {confidenceRating};
