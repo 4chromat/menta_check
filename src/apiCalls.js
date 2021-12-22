@@ -238,8 +238,11 @@ async function confidenceFlags(mentaObj, data) {
     // Specs on sameness 
     // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Equality_comparisons_and_sameness
     rating['is_twitter_verified'] = data['twitterData']['verified'] === true;
-    rating['is_opensea_safelist'] = data['openseaData']['safelist_request_status'] === '"approved"';
-    //rating['is_twitter_username_match_opensea_twitter'] = data['openseaData']['safelist_request_status'] === '"approved"';
+    rating['is_opensea_safelist'] = data['openseaData']['safelist_request_status'] === 'approved';
+    
+    rating['is_twitter_username_match_opensea_twitter'] = data['openseaData']['twitter_username'] === data['twitterData']['username'];
+    rating['is_opensea_webpage_match_twitter_webpage'] = data['openseaData']['external_url'] === data['twitterData']['expanded_url'];
+
     rating['is_twitter_link_same_website'] = data['twitterData']['expanded_url'] === mentaObj.baseWebsite;
     rating['is_opensea_link_same_website'] = data['openseaData']['external_url'] === mentaObj.baseWebsite;
     rating['is_twitter_username_in_website'] = data['twitterData']['username'] === mentaObj.twitterUsernameArray[0];
