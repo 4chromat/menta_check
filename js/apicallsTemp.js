@@ -9,44 +9,23 @@ const start = Date.now();
 
 const runTest = false;
 
-const baseTwitterUsername = 'crypto_coven';   // Todo: update username to 'id' twitters unique id
-
-const baseOpenseaSlug = 'cryptocoven';    // slug is OpenSea's unique collection name
-
-
-
-// Website Data Collection
-// Url, twitter username, and Open Sea slugs scrapped from website in popup.js 
 const baseWebsite = 'https://www.cryptocoven.xyz/';  // tab.url in popus.js
 
-const twitterUsernameArray = ['crypto_coven']  // Twitter handles from popups.js (todo arrays)
+const twitterUsernameArray = ['crypto_coven']
 
-const openseaSlugArray = ['cryptocoven'] // OpenSea slugs from popups.js (todo arrays)
+const openseaSlugArray = ['cryptocoven']
 
+const baseTwitterUsername = twitterUsernameArray[0];
 
-function transformWebsiteScrape(baseWebsite) {
+const baseOpenseaSlug = openseaSlugArray[0];
 
-    try {
+(async function () {
 
-        const data = {
-            'url': baseWebsite,
-            'twitter_username_array': twitterUsernameArray,
-            'opensea_slug_array': openseaSlugArray
-        };
+    const result = await confidenceRating();
 
-        data['status'] = 'completed';
+    console.log(result)
 
-        return data;
-
-    } catch (e) {
-        // console.log(e);
-        return {
-            'status': 'failed',
-            'errorMessage': `${e}`
-        };
-    }
-}
-
+})();
 
 
 //-----------------------------------------------
@@ -98,41 +77,9 @@ async function getTwitterRequest(username) {
         console.log("getTwitterRequest " + twitterEndpointURL + " " + params)
         return res.body;
     } else {
-       
         throw new Error('Unsuccessful Twitter request');
     }
 }
-
-async function transformTwitterResponse(username) {
-
-    try {
-        // Get Twitter response 
-        const response = await getTwitterRequest(username);
-
-        // Parsing of response continues async
-        const data = response['data'][0];
-
-        data['expanded_url'] = data['entities']['url']['urls'][0]['expanded_url'];
-        data['followers_count'] = data['public_metrics']['followers_count'];
-        data['following_count'] = data['public_metrics']['following_count'];
-        data['tweet_count'] = data['public_metrics']['tweet_count'];
-
-        delete data['entities'];
-        delete data['public_metrics'];
-
-        data['status'] = 'completed';
-
-        return data;
-
-    } catch (e) {
-        // console.log(e);
-        return {
-            'status': 'failed',
-            'errorMessage': `${e}`
-        };
-    }
-}
-
 
 // OpenSea Data Collection
 // OpenSea API call as in API Reference 'Retrieving a single collection'
@@ -192,6 +139,42 @@ async function getOpenseaRequest(collectionName) {
     }
 }
 
+
+
+//-----------------------------------------------
+// TRANSFORM FUNCTIONS
+//-----------------------------------------------
+
+async function transformTwitterResponse(username) {
+
+    try {
+        // Get Twitter response 
+        const response = await getTwitterRequest(username);
+
+        // Parsing of response continues async
+        const data = response['data'][0];
+
+        data['expanded_url'] = data['entities']['url']['urls'][0]['expanded_url'];
+        data['followers_count'] = data['public_metrics']['followers_count'];
+        data['following_count'] = data['public_metrics']['following_count'];
+        data['tweet_count'] = data['public_metrics']['tweet_count'];
+
+        delete data['entities'];
+        delete data['public_metrics'];
+
+        data['status'] = 'completed';
+
+        return data;
+
+    } catch (e) {
+        // console.log(e);
+        return {
+            'status': 'failed',
+            'errorMessage': `${e}`
+        };
+    }
+}
+
 async function transformOpenseaResponse(collectionName) {
 
     try {
@@ -227,6 +210,28 @@ async function transformOpenseaResponse(collectionName) {
     }
 }
 
+function transformWebsiteScrape(baseWebsite) {
+
+    try {
+
+        const data = {
+            'url': baseWebsite,
+            'twitter_username_array': twitterUsernameArray,
+            'opensea_slug_array': openseaSlugArray
+        };
+
+        data['status'] = 'completed';
+
+        return data;
+
+    } catch (e) {
+        // console.log(e);
+        return {
+            'status': 'failed',
+            'errorMessage': `${e}`
+        };
+    }
+}
 
 
 //-----------------------------------------------
@@ -236,11 +241,11 @@ async function transformOpenseaResponse(collectionName) {
 //  Data collection from Twitter and OpenSea
 async function collectData() {
 
+    const websiteData = transformWebsiteScrape(baseWebsite);
+
     const twitterData = await transformTwitterResponse(baseTwitterUsername);
 
     const openseaData = await transformOpenseaResponse(baseOpenseaSlug);
-
-    const websiteData = transformWebsiteScrape(baseWebsite);
 
     data = {
 
@@ -254,7 +259,6 @@ async function collectData() {
 
     return data;
 }
-
 
 //  Annotate confidence flags
 async function confidenceFlags() {
@@ -282,7 +286,7 @@ async function confidenceFlags() {
 //  Assign A-F rating
 // To do: add recommended sites in rating
 // TBC: All ratings need more insights
-(async function confidenceRating() {
+async function confidenceRating() {
 
     const data = await collectData();
 
@@ -338,7 +342,7 @@ async function confidenceFlags() {
 
         rating['is_twitter_username_in_blocklist'] ||
         rating['is_opensea_slug_in_blocklist'] ||
-        rating['is_website_in_blocklist'] 
+        rating['is_website_in_blocklist']
 
     ) {
 
@@ -362,6 +366,7 @@ async function confidenceFlags() {
 
     }
 
-    console.log(data)
+    return data;
 
-})();
+}
+
