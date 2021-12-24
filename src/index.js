@@ -46,13 +46,6 @@ function setResults(dataObj, uniqueUrl) {
   resultList.innerHTML = '';
   resultList.appendChild(createListDiv("", ""));
 
-  // settting openSea data
-  if (openSeaV)
-    resultList.appendChild(createListDiv("OpenSea Verified", "ver"))
-  else if (openseaF)
-    resultList.appendChild(createListDiv("OpenSea Found", "good"))
-  else
-    resultList.appendChild(createListDiv("OpenSea Missing", "na"))
 
   // setting twitter data
   if (twitterV)
@@ -62,12 +55,28 @@ function setResults(dataObj, uniqueUrl) {
   else
     resultList.appendChild(createListDiv("Twitter Missing", "na"))
 
+  // settting openSea data
+  if (openSeaV)
+    resultList.appendChild(createListDiv("OpenSea Verified", "ver"))
+  else if (openseaF)
+    resultList.appendChild(createListDiv("OpenSea Found", "good"))
+  else
+    resultList.appendChild(createListDiv("OpenSea Missing", "na"))
+
   // setting combined data with Open Sea
   if (openseaF && twitterF) {
     if (openSeaTwitterM)
       resultList.appendChild(createListDiv("OpenSea-Twitter Match", "good"));
     else if (twitterFOpensea)
       resultList.appendChild(createListDiv("OpenSea-Twitter Mismatch", "bad"));
+  }
+
+  // setting combined data with Twitter
+  if (uniqueUrl) {
+    if (twitterMWeb)
+      resultList.appendChild(createListDiv("Twitter-Website Match", "good"));
+    else if (twitterF)
+      resultList.appendChild(createListDiv("Twitter-Website Misatch", "bad"));
   }
 
   // if in website url
@@ -78,13 +87,7 @@ function setResults(dataObj, uniqueUrl) {
       resultList.appendChild(createListDiv("OpenSea-Website Misatch", "bad"));
   }
 
-  // setting combined data with Twitter
-  if (uniqueUrl) {
-    if (twitterMWeb)
-      resultList.appendChild(createListDiv("Twitter-Website Match", "good"));
-    else if (twitterF)
-      resultList.appendChild(createListDiv("Twitter-Website Misatch", "bad"));
-  }
+
 
   // setting twitter data
   if (!twitterF && !openseaF)
@@ -121,7 +124,7 @@ function getAllURL() {
   var urls = document.getElementsByTagName("a");
 
   console.log("Collecting URLs...");
-  
+
   for (var i = 0; i < urls.length; i++) {
     const cur = urls[i].getAttribute('href');
     if (cur == null || cur === '/') continue;
