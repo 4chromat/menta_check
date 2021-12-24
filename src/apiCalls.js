@@ -9,8 +9,6 @@ import axios from "axios";
 // https://developer.twitter.com/en/docs/twitter-api/users/lookup/api-reference/get-users-by-username-username
 
 import {getBearerToken, getOpenseaKey} from './getApiKeys.js'
-//const bearerToken = process.env.BEARER_TOKEN;
-// const bearerToken = getBearerToken();
 
 const twitterEndpointURL = "https://api.twitter.com/2/users/by?usernames=";
 
@@ -32,11 +30,7 @@ const twitterFieldsArray = [
 
 async function getTwitterRequest(username) {
     const bearerToken = getBearerToken();
-    // Parameters for the API request
-    const params = {
-        usernames: username,
-        "user.fields": twitterFieldsArray.join(','),
-    }
+
     try {
         // HTTP header that adds Twitter's bearer token authentication   "User-Agent": "v2UserLookupJS",
         const geturlParams = twitterEndpointURL + username + "&user.fields="+twitterFieldsArray.join(',')
@@ -54,6 +48,7 @@ async function getTwitterRequest(username) {
        console.log(error)
       }
 }
+
 
 // OpenSea Data Collection
 // OpenSea API call as in API Reference 'Retrieving a single collection'
@@ -112,6 +107,8 @@ async function getOpenseaRequest(collectionName) {
     }
 }
 
+
+
 //-----------------------------------------------
 // TRANSFORM FUNCTIONS
 //-----------------------------------------------
@@ -148,11 +145,9 @@ async function transformTwitterResponse(username) {
 
 async function transformOpenseaResponse(collectionName) {
 
-    try {
-        // Get OpenSea response 
+    try { 
         const response = await getOpenseaRequest(collectionName);
 
-        // Parsing of response continues async
         let data = {};
 
         for (var v of openseaAttributesArray) {
@@ -238,18 +233,26 @@ async function confidenceFlags(mentaObj, data) {
     // Specs on sameness 
     // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Equality_comparisons_and_sameness
     rating['is_twitter_verified'] = data['twitterData']['verified'] === true;
-    rating['is_opensea_safelist'] = data['openseaData']['safelist_request_status'] === 'approved';
-    
+    rating['is_opensea_safelist'] = (data['openseaData']['safelist_request_status'] === 'verified') ||
+        (data['openseaData']['safelist_request_status'] === 'approved');
+
     rating['is_twitter_username_match_opensea_twitter'] = data['openseaData']['twitter_username'] === data['twitterData']['username'];
     rating['is_opensea_webpage_match_twitter_webpage'] = data['openseaData']['external_url'] === data['twitterData']['expanded_url'];
 
-    rating['is_twitter_link_same_website'] = data['twitterData']['expanded_url'] === mentaObj.baseWebsite;
-    rating['is_opensea_link_same_website'] = data['openseaData']['external_url'] === mentaObj.baseWebsite;
+    // Twitter and OpenSea linked sites often list http, no www, and /$ 
+    const link_in_opensea = standarizeUrl(data['openseaData']['external_url']);
+    const link_in_twitter = standarizeUrl(data['twitterData']['expanded_url']);
+    const link_in_website = standarizeUrl(mentaObj.baseWebsite);
+
+    rating['is_twitter_link_same_website'] = link_in_twitter === link_in_website;
+    rating['is_opensea_link_same_website'] = link_in_opensea === link_in_website;
+
     rating['is_twitter_username_in_website'] = data['twitterData']['username'] === mentaObj.twitterUsernameArray[0];
     rating['is_slug_in_website'] = data['openseaData']['slug'] === mentaObj.openseaSlugArray[0];
-    rating['is_twitter_username_in_blocklist'] = false  // To do: create Blocklist
-    rating['is_opensea_slug_in_blocklist'] = false  // To do: create Blocklist
-    rating['is_website_in_blocklist'] = false  // To do: create Blocklist
+
+    rating['is_twitter_username_in_blocklist'] = false;  // To do: create Blocklist
+    rating['is_opensea_slug_in_blocklist'] = false;  // To do: create Blocklist
+    rating['is_website_in_blocklist'] = false;  // To do: create Blocklist
 
     return rating;
 
@@ -259,11 +262,11 @@ async function confidenceFlags(mentaObj, data) {
 // To do: add recommended sites in rating
 // TBC: All ratings need more insights
 async function confidenceRating(mentaObj) {
-  console.log(mentaObj)
+    console.log(mentaObj)
     const data = await collectData(mentaObj);
     const rating = await confidenceFlags(mentaObj, data);
-    if ( // Accounts are verified and match then rate 'A'
 
+    if ( // Accounts are verified and match then rate 'A'
         rating['is_twitter_verified'] &&
         rating['is_opensea_safelist'] &&
         rating['is_twitter_link_same_website'] &&
@@ -271,41 +274,43 @@ async function confidenceRating(mentaObj) {
         rating['is_twitter_username_in_website'] &&
         rating['is_slug_in_website']
     ) {
+
         rating['rate'] = 'A';
+
     } else if ( // Accounts not verified but match then rate 'B'
         rating['is_twitter_link_same_website'] &&
         rating['is_opensea_link_same_website'] &&
         rating['is_twitter_username_in_website'] &&
         rating['is_slug_in_website']
     ) {
+
         rating['rate'] = 'B';
+
     } else if ( // Accounts not verified, mismatch, or data clash then rate 'C'  
         rating['is_twitter_link_same_website'] ||
         rating['is_opensea_link_same_website'] ||
         rating['is_twitter_username_in_website'] ||
         rating['is_slug_in_website']
     ) {
-        rating['rate'] = 'C';
-    } else if ( // Accounts not verified, mismatch, and data clash then rate 'D'
 
+        rating['rate'] = 'C';
+
+    } else if ( // Accounts not verified, mismatch, and data clash then rate 'D'
         !(rating['is_twitter_link_same_website'] ||
             rating['is_opensea_link_same_website'] ||
             rating['is_twitter_username_in_website'] ||
             rating['is_slug_in_website'])
-
     ) {
 
         rating['rate'] = 'D';
 
     } else if ( // Website, Twitter username, or OpenSea sug in Blacklist then rate 'F'
-
         rating['is_twitter_username_in_blocklist'] ||
         rating['is_opensea_slug_in_blocklist'] ||
         rating['is_website_in_blocklist']
-
     ) {
 
-        rating['rate'] = 'D';
+        rating['rate'] = 'F';
 
     }
 
@@ -326,7 +331,18 @@ async function confidenceRating(mentaObj) {
     }
 
     return data;
-
 }
 
 export {confidenceRating};
+
+
+function standarizeUrl(link) {
+    //  Clean domain name and extension from url for matching 
+    // i.e.  https://www.website.com/#3223/  -> website.com
+    
+    if (link === undefined) { link = ''} 
+    link = link.replace('https://', '').replace('http://', '')
+    link = link.replace(/^www\./, '')
+    link = link.replace(/\/.*$/g, '');
+    return link
+}
