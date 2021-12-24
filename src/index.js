@@ -121,10 +121,10 @@ function getAllURL() {
   var urls = document.getElementsByTagName("a");
 
   console.log("Collecting URLs...");
-
+  
   for (var i = 0; i < urls.length; i++) {
     const cur = urls[i].getAttribute('href');
-    //  console.log(cur);
+    if (cur == null || cur === '/') continue;
     if (cur.indexOf("https://opensea.io/collection/") > -1) {
       opensea.push(cur);
     }
