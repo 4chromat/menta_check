@@ -244,8 +244,8 @@ async function confidenceFlags(mentaObj, data) {
 
     rating['is_twitter_verified'] = data['twitterData']['verified'] === true;
     rating['is_opensea_safelist'] = (data['openseaData']['safelist_request_status'] === 'verified') ||
-        (data['openseaData']['safelist_request_status'] === 'approved') ||
-        (link_in_website === 'opensea.io');  // Special case for OpenSea website
+        (data['openseaData']['safelist_request_status'] === 'approved') ;
+        // || (mentaObj.baseWebsite === 'https://opensea.io');  // Special case for OpenSea website.  Todo: allowlist
 
     rating['is_twitter_username_match_opensea_twitter'] = data['openseaData']['twitter_username'] === data['twitterData']['username'];
     rating['is_opensea_webpage_match_twitter_webpage'] = data['openseaData']['external_url'] === data['twitterData']['expanded_url'];

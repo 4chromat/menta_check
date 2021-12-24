@@ -87,8 +87,6 @@ function setResults(dataObj, uniqueUrl) {
       resultList.appendChild(createListDiv("OpenSea-Website Misatch", "bad"));
   }
 
-
-
   // setting twitter data
   if (!twitterF && !openseaF)
     resultList.appendChild(createListDiv("Can you mint here?", "na"));
