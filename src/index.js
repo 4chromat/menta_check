@@ -30,13 +30,17 @@ window.addEventListener("DOMContentLoaded", () => {
 
 function setResults(dataObj, uniqueUrl) {
 
-  let twitterV = dataObj.rating.is_twitter_verified
-  let openSeaV = dataObj.rating.is_opensea_safelist
+  let twitterF = dataObj.rating.is_twitter_found;
+  let openseaF = dataObj.rating.is_opensea_found;
+  let twitterFOpensea = dataObj.is_twitter_found_in_opensea;
 
-  let openSeaTwitterM = dataObj.rating.is_twitter_username_match_opensea_twitter
+  let twitterV = dataObj.rating.is_twitter_verified;
+  let openSeaV = dataObj.rating.is_opensea_safelist;
 
-  let twitterMWeb = dataObj.rating.is_twitter_link_same_website
-  let openSeaMWeb = dataObj.rating.is_opensea_link_same_website
+  let openSeaTwitterM = dataObj.rating.is_twitter_username_match_opensea_twitter;
+
+  let twitterMWeb = dataObj.rating.is_twitter_link_same_website;
+  let openSeaMWeb = dataObj.rating.is_opensea_link_same_website;
 
   var resultList = document.getElementById("resultList")
   resultList.innerHTML = '';
@@ -45,36 +49,46 @@ function setResults(dataObj, uniqueUrl) {
   // settting openSea data
   if (openSeaV)
     resultList.appendChild(createListDiv("OpenSea Verified", "ver"))
+  else if (openseaF)
+    resultList.appendChild(createListDiv("OpenSea Found", "good"))
   else
-    resultList.appendChild(createListDiv("OpenSea Verified", "na"))
+    resultList.appendChild(createListDiv("OpenSea Missing", "na"))
 
   // setting twitter data
   if (twitterV)
     resultList.appendChild(createListDiv("Twitter Verified", "ver"));
+  else if (twitterF)
+    resultList.appendChild(createListDiv("Twitter Found", "good"))
   else
-    resultList.appendChild(createListDiv("Twitter Verified", "na"))
+    resultList.appendChild(createListDiv("Twitter Missing", "na"))
 
-  // setting combined data
-  if (openSeaTwitterM)
-    resultList.appendChild(createListDiv("OpenSea Match Twitter", "good"));
-  else
-    resultList.appendChild(createListDiv("OpenSea Match Twitter", "bad"));
+  // setting combined data with Open Sea
+  if (openseaF && twitterF) {
+    if (openSeaTwitterM)
+      resultList.appendChild(createListDiv("OpenSea-Twitter Match", "good"));
+    else if (twitterFOpensea)
+      resultList.appendChild(createListDiv("OpenSea-Twitter Mismatch", "bad"));
+  }
 
   // if in website url
   if (uniqueUrl) {
     if (openSeaMWeb)
-      resultList.appendChild(createListDiv("OpenSea Match Website", "good"));
-    else
-      resultList.appendChild(createListDiv("OpenSea Match Website", "bad"));
-
+      resultList.appendChild(createListDiv("OpenSea-Website Match", "good"));
+    else if (openseaF)
+      resultList.appendChild(createListDiv("OpenSea-Website Misatch", "bad"));
   }
+
+  // setting combined data with Twitter
   if (uniqueUrl) {
     if (twitterMWeb)
-      resultList.appendChild(createListDiv("Twitter Match Website", "good"));
-    else
-      resultList.appendChild(createListDiv("Twitter Match Website", "bad"));
+      resultList.appendChild(createListDiv("Twitter-Website Match", "good"));
+    else if (twitterF)
+      resultList.appendChild(createListDiv("Twitter-Website Misatch", "bad"));
   }
 
+  // setting twitter data
+  if (!twitterF && !openseaF)
+    resultList.appendChild(createListDiv("Can you mint here?", "na"));
 }
 
 
@@ -119,9 +133,9 @@ function getAllURL() {
     }
   }
 
-  console.log("OpenSea URLs suffixes:");
+  console.log("OpenSea URLs:");
   console.log(opensea);
-  console.log("Twitter URLs suffixes:");
+  console.log("Twitter URLs:");
   console.log(twitter);
 
   return [opensea, twitter]
@@ -144,7 +158,7 @@ async function mainProcess(url, openseaURLs, twitterURLs) {
     if (!isDuplicate(openseaURLs, baseWebsite))
       openseaURLs.push(baseWebsite)
   }
-  
+
   // Check if front tab is a profile page in Twitter, if so toggle uniqueUrl
   if (baseWebsite.indexOf("https://www.twitter.com") > -1 || baseWebsite.indexOf("https://twitter.com") > -1) {
     uniqueUrl = false
@@ -160,7 +174,7 @@ async function mainProcess(url, openseaURLs, twitterURLs) {
   }
 
   // Parse all Twitter slugs from Twitter URLs found on front tab
-  for (var urls in twitterURLs) { 
+  for (var urls in twitterURLs) {
     var a = twitterURLs[urls].split("/");
     if (!isDuplicate(twitterUsernames, a[a.length - 1]))
       twitterUsernames.push(a[a.length - 1])

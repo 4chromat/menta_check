@@ -230,19 +230,25 @@ async function collectData(mentaObj) {
 async function confidenceFlags(mentaObj, data) {
     const rating = {};
 
-    // Specs on sameness 
-    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Equality_comparisons_and_sameness
-    rating['is_twitter_verified'] = data['twitterData']['verified'] === true;
-    rating['is_opensea_safelist'] = (data['openseaData']['safelist_request_status'] === 'verified') ||
-        (data['openseaData']['safelist_request_status'] === 'approved');
-
-    rating['is_twitter_username_match_opensea_twitter'] = data['openseaData']['twitter_username'] === data['twitterData']['username'];
-    rating['is_opensea_webpage_match_twitter_webpage'] = data['openseaData']['external_url'] === data['twitterData']['expanded_url'];
-
     // Twitter and OpenSea linked sites often list http, no www, and /$ 
     const link_in_opensea = standarizeUrl(data['openseaData']['external_url']);
     const link_in_twitter = standarizeUrl(data['twitterData']['expanded_url']);
     const link_in_website = standarizeUrl(mentaObj.baseWebsite);
+
+    // Specs on sameness 
+    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Equality_comparisons_and_sameness
+
+    rating['is_twitter_found'] = ('id' in data.twitterData) ? true : false;
+    rating['is_opensea_found'] = ('slug' in data.openseaData) ? true : false;
+    rating['is_twitter_found_in_opensea'] = ('twitter_username' in data.openseaData) ? true : false;
+
+    rating['is_twitter_verified'] = data['twitterData']['verified'] === true;
+    rating['is_opensea_safelist'] = (data['openseaData']['safelist_request_status'] === 'verified') ||
+        (data['openseaData']['safelist_request_status'] === 'approved') ||
+        (link_in_website === 'opensea.io');  // Special case for OpenSea website
+
+    rating['is_twitter_username_match_opensea_twitter'] = data['openseaData']['twitter_username'] === data['twitterData']['username'];
+    rating['is_opensea_webpage_match_twitter_webpage'] = data['openseaData']['external_url'] === data['twitterData']['expanded_url'];
 
     rating['is_twitter_link_same_website'] = link_in_twitter === link_in_website;
     rating['is_opensea_link_same_website'] = link_in_opensea === link_in_website;
