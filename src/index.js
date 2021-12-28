@@ -5,7 +5,7 @@ window.addEventListener("DOMContentLoaded", () => {
   var button = document.getElementById("mentaCheck")
   //var bg = chrome.extension.getBackgroundPage();
   button.addEventListener("click", async () => {
-    console.log("clicked")
+    console.log("Clicked 'Menta Check'")
     let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
     chrome.scripting.executeScript({
@@ -189,9 +189,13 @@ async function mainProcess(url, openseaURLs, twitterURLs) {
     baseOpenseaSlug: openseaSlugs[0]
   };
 
+  console.log("Initialized mentaObj:");
+  console.log(mentaObj);
+
   // api calls with usernames and slugs
   const result = await confidenceRating(mentaObj);
 
+  console.log("Output:");
   console.log(result)
 
   //var tmpObj = tempObj();

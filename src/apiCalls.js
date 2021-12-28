@@ -268,9 +268,16 @@ async function confidenceFlags(mentaObj, data) {
 // To do: add recommended sites in rating
 // TBC: All ratings need more insights
 async function confidenceRating(mentaObj) {
-    console.log(mentaObj)
+
+    console.log("Collecting and transforming data...")
     const data = await collectData(mentaObj);
+    console.log(data);
+
+    console.log("Assigning confidence flags...")
     const rating = await confidenceFlags(mentaObj, data);
+    console.log(rating);
+
+    console.log("Computing confidence rating...")
 
     if ( // Accounts are verified and match then rate 'A'
         rating['is_twitter_verified'] &&
@@ -319,6 +326,9 @@ async function confidenceRating(mentaObj) {
         rating['rate'] = 'F';
 
     }
+
+    console.log('Rating:');
+    console.log(rating);
 
     data['rating'] = rating;
 
