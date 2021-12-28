@@ -8,7 +8,7 @@ import axios from "axios";
 // https://github.com/twitterdev/Twitter-API-v2-sample-code/blob/main/User-Lookup/get_users_with_bearer_token.js
 // https://developer.twitter.com/en/docs/twitter-api/users/lookup/api-reference/get-users-by-username-username
 
-import {getBearerToken, getOpenseaKey} from './getApiKeys.js'
+import { getBearerToken, getOpenseaKey } from './getApiKeys.js'
 
 const twitterEndpointURL = "https://api.twitter.com/2/users/by?usernames=";
 
@@ -33,20 +33,20 @@ async function getTwitterRequest(username) {
 
     try {
         // HTTP header that adds Twitter's bearer token authentication   "User-Agent": "v2UserLookupJS",
-        const geturlParams = twitterEndpointURL + username + "&user.fields="+twitterFieldsArray.join(',')
+        const geturlParams = twitterEndpointURL + username + "&user.fields=" + twitterFieldsArray.join(',')
         const res = await axios.get(geturlParams, {
             headers: {
-            Authorization:  `Bearer ${bearerToken}`
+                Authorization: `Bearer ${bearerToken}`
             }
-        }) 
+        })
         if (res.data) {
             return res.data;
         } else {
             throw new Error('Unsuccessful Twitter request');
         }
-    }catch (error) {
-       console.log(error)
-      }
+    } catch (error) {
+        console.log(error)
+    }
 }
 
 
@@ -99,7 +99,7 @@ async function getOpenseaRequest(collectionName) {
         headers: {
             "X-API-KEY": `${openseaKey}`
         }
-    }) 
+    })
     if (res.data) {
         return res.data;
     } else {
@@ -145,13 +145,16 @@ async function transformTwitterResponse(username) {
 
 async function transformOpenseaResponse(collectionName) {
 
-    try { 
+    try {
+
+        if (collectionName === undefined)
+            collectionName = '';
+
         const response = await getOpenseaRequest(collectionName);
 
         let data = {};
 
         for (var v of openseaAttributesArray) {
-
             data[v] = response['collection'][v];
         }
 
@@ -160,7 +163,15 @@ async function transformOpenseaResponse(collectionName) {
         }
 
         for (var v of openseaContractsArray) {
-            data[v] = response['collection']['primary_asset_contracts'][0][v];
+            try { // Collections may miss primary_asset_contracts
+                var temp = response['collection']['primary_asset_contracts'][0][v];
+            }
+            catch (e) {
+                var temp = e;
+            }
+            finally {
+                data[v] = temp;
+            }
         }
 
         data['status'] = 'completed';
@@ -238,14 +249,19 @@ async function confidenceFlags(mentaObj, data) {
     // Specs on sameness 
     // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Equality_comparisons_and_sameness
 
+    console.log('slugggg');
+    console.log(data.openseaData.slug);
+    console.log(data.openseaData.slug === undefined);
+    console.log(data.openseaData.slug === "undefined");
+
     rating['is_twitter_found'] = ('id' in data.twitterData) ? true : false;
     rating['is_opensea_found'] = ('slug' in data.openseaData) ? true : false;
     rating['is_twitter_found_in_opensea'] = ('twitter_username' in data.openseaData) ? true : false;
 
     rating['is_twitter_verified'] = data['twitterData']['verified'] === true;
     rating['is_opensea_safelist'] = (data['openseaData']['safelist_request_status'] === 'verified') ||
-        (data['openseaData']['safelist_request_status'] === 'approved') ;
-        // || (mentaObj.baseWebsite === 'https://opensea.io');  // Special case for OpenSea website.  Todo: allowlist
+        (data['openseaData']['safelist_request_status'] === 'approved');
+    // || (mentaObj.baseWebsite === 'https://opensea.io');  // Special case for OpenSea website.  Todo: allowlist
 
     rating['is_twitter_username_match_opensea_twitter'] = data['openseaData']['twitter_username'] === data['twitterData']['username'];
     rating['is_opensea_webpage_match_twitter_webpage'] = data['openseaData']['external_url'] === data['twitterData']['expanded_url'];
@@ -279,40 +295,66 @@ async function confidenceRating(mentaObj) {
 
     console.log("Computing confidence rating...")
 
-    if ( // Accounts are verified and match then rate 'A'
+    if (  // OpenSea and Twitter not found, then rate NA
+        !rating['is_twitter_found'] &&
+        !rating['is_opensea_found']
+    ) {
+
+        rating['rate'] = 'NA';
+
+    } else if ( // Accounts are verified and match then rate 'A+'
         rating['is_twitter_verified'] &&
         rating['is_opensea_safelist'] &&
+        rating['is_twitter_found_in_opensea'] &&
+        rating['is_twitter_username_match_opensea_twitter'] &&
         rating['is_twitter_link_same_website'] &&
-        rating['is_opensea_link_same_website'] &&
-        rating['is_twitter_username_in_website'] &&
-        rating['is_slug_in_website']
+        rating['is_opensea_link_same_website']
+    ) {
+
+        rating['rate'] = 'A+';
+
+    } else if ( // One account verified and other found, plus match, then rate 'A'
+        (rating['is_twitter_verified'] &&
+            rating['is_twitter_link_same_website'] &&
+            rating['is_opensea_found'] &&
+            rating['is_twitter_username_match_opensea_twitter'])
+        ||
+        (rating['is_opensea_safelist'] &&
+            rating['is_opensea_link_same_website'] &&
+            rating['is_twitter_found'] &&
+            rating['is_twitter_username_match_opensea_twitter'])
     ) {
 
         rating['rate'] = 'A';
 
-    } else if ( // Accounts not verified but match then rate 'B'
-        rating['is_twitter_link_same_website'] &&
-        rating['is_opensea_link_same_website'] &&
-        rating['is_twitter_username_in_website'] &&
-        rating['is_slug_in_website']
+    } else if ( // One account verified and other found, then rate 'B'
+        (rating['is_twitter_verified'] &&
+            rating['is_twitter_link_same_website'] &&
+            rating['is_opensea_found'])
+        ||
+        (rating['is_opensea_safelist'] &&
+            rating['is_opensea_link_same_website'] &&
+            rating['is_twitter_found'])
     ) {
 
         rating['rate'] = 'B';
 
-    } else if ( // Accounts not verified, mismatch, or data clash then rate 'C'  
-        rating['is_twitter_link_same_website'] ||
-        rating['is_opensea_link_same_website'] ||
-        rating['is_twitter_username_in_website'] ||
-        rating['is_slug_in_website']
+    } else if ( // Accounts not verified, at least one found, then rate 'C'  
+        (rating['is_twitter_found'] &&
+            rating['is_twitter_link_same_website'] &&
+            !rating['is_opensea_found']
+        )
+        ||
+        (rating['is_opensea_found'] &&
+            rating['is_opensea_link_same_website'] &&
+            !rating['is_twitter_found'])
     ) {
 
         rating['rate'] = 'C';
 
-    } else if ( // Accounts not verified, mismatch, and data clash then rate 'D'
+    } else if ( // Accounts not verified, mismatch, or data clash then rate 'D'
         !(rating['is_twitter_link_same_website'] ||
-            rating['is_opensea_link_same_website'] ||
-            rating['is_twitter_username_in_website'] ||
-            rating['is_slug_in_website'])
+            rating['is_opensea_link_same_website'])
     ) {
 
         rating['rate'] = 'D';
@@ -328,6 +370,7 @@ async function confidenceRating(mentaObj) {
     }
 
     console.log('Rating:');
+    console.log(rating['rate']);
     console.log(rating);
 
     data['rating'] = rating;
@@ -349,16 +392,19 @@ async function confidenceRating(mentaObj) {
     return data;
 }
 
-export {confidenceRating};
+export { confidenceRating };
 
 
 function standarizeUrl(link) {
     //  Clean domain name and extension from url for matching 
     // i.e.  https://www.website.com/#3223/  -> website.com
-    
-    if (link === undefined) { link = ''} 
+
+    if (link === undefined || link === null) { link = '' }
+    console.log('Standarized link:');
+    console.log(link);
     link = link.replace('https://', '').replace('http://', '')
     link = link.replace(/^www\./, '')
     link = link.replace(/\/.*$/g, '');
+    console.log(link);
     return link
 }

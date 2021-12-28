@@ -30,6 +30,8 @@ window.addEventListener("DOMContentLoaded", () => {
 
 function setResults(dataObj, uniqueUrl) {
 
+  let rate = dataObj.rating.rate;
+
   let twitterF = dataObj.rating.is_twitter_found;
   let openseaF = dataObj.rating.is_opensea_found;
   let twitterFOpensea = dataObj.is_twitter_found_in_opensea;
@@ -42,10 +44,15 @@ function setResults(dataObj, uniqueUrl) {
   let twitterMWeb = dataObj.rating.is_twitter_link_same_website;
   let openSeaMWeb = dataObj.rating.is_opensea_link_same_website;
 
+  let floorPrice = dataObj.openseaData.floor_price;
+
   var resultList = document.getElementById("resultList")
   resultList.innerHTML = '';
   resultList.appendChild(createListDiv("", ""));
 
+
+  // setting page rating
+  resultList.appendChild(createListDiv(`Rate: ${rate}`, "good"));
 
   // setting twitter data
   if (twitterV)
@@ -90,6 +97,10 @@ function setResults(dataObj, uniqueUrl) {
   // setting twitter data
   if (!twitterF && !openseaF)
     resultList.appendChild(createListDiv("Can you mint here?", "na"));
+
+      // setting floor price if found
+      if (floorPrice)
+  resultList.appendChild(createListDiv(`Floor price: ${floorPrice}`, "good"));
 }
 
 
