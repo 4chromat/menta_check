@@ -7,6 +7,9 @@
     "*://*/*",
     "http://*/*", "https://*/*"
   ],
+  "service_worker":{
+    "scripts":["background.js"]
+  },
   "permissions": ["activeTab", "scripting"],
   "action": {
     "default_popup": "index.html",

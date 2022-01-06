@@ -19,7 +19,8 @@
     "webpack-cli": "^3.3.11"
   },
   "dependencies": {
-    "lodash": "^4.17.21",
-    "axios": "^0.19.2"
+    "axios": "^0.19.2",
+    "cheerio": "^1.0.0-rc.10",
+    "lodash": "^4.17.21"
   }
 }

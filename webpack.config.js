@@ -8,7 +8,7 @@ module.exports = {
     path: path.resolve(__dirname, 'dist'),
   },
   node: {
-  fs: 'empty'
+    fs: 'empty'
   },
   plugins: [
     new Dotenv()
