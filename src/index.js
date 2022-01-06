@@ -51,6 +51,14 @@ function setResults(dataObj, uniqueUrl) {
   resultList.innerHTML = '';
   resultList.appendChild(createListDiv("", ""));
 
+  // setting img in logo:
+  var logo = document.getElementById("logoImg")
+  if(rate =='A+'){ logo.src = "/img/logo_aa.png"}
+  if(rate =='A'){ logo.src = "/img/logo_a.png"}
+  if(rate =='B'){ logo.src = "/img/logo_b.png"}
+  if(rate =='C'){ logo.src = "/img/logo_c.png"}
+  if(rate =='D'){ logo.src = "/img/logo_d.png"}
+  if(rate =='F'){ logo.src = "/img/logo_f.png"}
 
   // setting page rating
   resultList.appendChild(createListDiv(`Rate: ${rate}`, "good"));
