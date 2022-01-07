@@ -1,24 +1,17 @@
 import { collectApiData, confidenceRating, getWebpageUrls } from './apiCalls.js';
 
-//window.addEventListener("DOMContentLoaded", () => {
 (async function() {
-    // var button = document.getElementById("mentaCheck")
-    //var bg = chrome.extension.getBackgroundPage();
-    // button.addEventListener("click", async () => {
-    console.log("Clicked 'Menta Check'")
+    console.log("Clicked extension")
     let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
     chrome.scripting.executeScript({
         target: { tabId: tab.id },
         function: getAllURLCurTab
     }, (injectionResults) => {
-        //console.log( injectionResults[0].result)
         let openseaURL = injectionResults[0].result[0]
         let twitterURL = injectionResults[0].result[1]
         mainProcess(tab.url, openseaURL, twitterURL)
     });
-    // })
-    //})
 })();
 
 //-----------------------------------------------
@@ -85,7 +78,6 @@ function setResults(dataObj, uniqueUrl) {
     }
 
     // setting combined data with Twitter
-
     if (twitterMWeb)
         resultList.appendChild(createListDiv("Twitter-Website Match", "good"));
     else if (twitterF)
@@ -120,14 +112,15 @@ function createListDiv(info, iconStatus) {
         span.className = "icon-span " + icon;
         content.appendChild(span);
         text.textContent = info;
-
         content.appendChild(text);
     }
-
     return content
 }
 
 //-----------------------------------------------
+// SCRAPPING FUNCTIONS
+//-----------------------------------------------
+
 // Function to get all links from current tab
 function getAllURLCurTab() {
     var opensea = [];
@@ -210,7 +203,10 @@ function getOpenSeaSlug(openseaURLs) {
     return openseaSlugs;
 }
 
-//------------------------------------------------------
+//-----------------------------------------------
+// MAIN
+//-----------------------------------------------
+
 // Main function grabs slugs and runs API for restuls
 async function mainProcess(url, openseaURLs, twitterURLs) {
 
@@ -251,7 +247,7 @@ async function mainProcess(url, openseaURLs, twitterURLs) {
     };
 
     // api calls with usernames and slugs
-    console.log("Collecting and transforming data...")
+    console.log("Collecting and transforming data...");
     const data = await collectApiData(mentaObj);
     console.log(data);
 
@@ -264,8 +260,8 @@ async function mainProcess(url, openseaURLs, twitterURLs) {
         } else if (data.twitterData.status !== 'failed' && data.twitterData.expanded_url !== "") {
             extendedUrl = data.twitterData.expanded_url
         }
-        console.log("Scrape website for data in unique URL " + extendedUrl)
-            // if user is not on a website , do scraping on result url to check compatability 
+        console.log("Scrape website for data in unique URL " + extendedUrl);
+        // if user is not on a website , do scraping on result url to check compatability 
         if (extendedUrl != "") {
             var links = await getWebpageUrls(extendedUrl);
 
@@ -283,11 +279,6 @@ async function mainProcess(url, openseaURLs, twitterURLs) {
                 }
                 var openseaSlugs_web = getOpenSeaSlug(openseaURLs_web)
                 var twitterUsernames_web = getTwitterUsername(twitterURLs_web)
-
-                // console.log("openseaSlugs_web")
-                // console.log(openseaSlugs_web)
-                // console.log("twitterUsernames_web")
-                // console.log(twitterUsernames_web)
 
                 mentaObj = {
                     baseWebsite: extendedUrl,
@@ -316,9 +307,3 @@ function isDuplicate(array, tmp) {
     }
     return false
 }
-
-// Commenting out since it aint used yet
-//  function isValidURL(string) {
-//    var res = string.match(/(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/g);
-//    return (res !== null)
-//  };

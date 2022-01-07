@@ -9,6 +9,7 @@ const cheerio = require('cheerio');
 //-----------------------------------------------
 // WEBPAGE FUNCTIONS
 //-----------------------------------------------
+
 async function getWebpageUrls(url) {
     console.log("getWebpageUrls")
     var links = [];
@@ -95,7 +96,6 @@ async function getTwitterRequest(username) {
 const openseaEndpointURL = "https://api.opensea.io/api/v1/collection/";
 
 const openseaAttributesArray = [
-
     'created_date',
     'description',
     'external_url',
@@ -109,7 +109,6 @@ const openseaAttributesArray = [
 ];
 
 const openseaStatsArray = [
-
     'average_price',
     'count',
     'floor_price',
@@ -122,7 +121,6 @@ const openseaStatsArray = [
 ];
 
 const openseaContractsArray = [
-
     'address',
     'payout_address'
 ];
@@ -172,7 +170,7 @@ async function transformTwitterResponse(username) {
         return data;
 
     } catch (e) {
-        // console.log(e);
+        console.log(e);
         return {
             'status': 'failed',
             'errorMessage': `${e}`
@@ -214,7 +212,7 @@ async function transformOpenseaResponse(collectionName) {
         return data;
 
     } catch (e) {
-        // console.log(e);
+        console.log(e);
         return {
             'status': 'failed',
             'errorMessage': `${e}`
@@ -237,7 +235,7 @@ function transformWebsiteScrape(mentaObj) {
         return data;
 
     } catch (e) {
-        // console.log(e);
+        console.log(e);
         return {
             'status': 'failed',
             'errorMessage': `${e}`
@@ -260,7 +258,6 @@ async function collectApiData(mentaObj) {
     const openseaData = await transformOpenseaResponse(mentaObj.baseOpenseaSlug);
 
     var data = {
-
         'baseTwitter': mentaObj.baseTwitterUsername,
         'baseSlug': mentaObj.baseOpenseaSlug,
         'baseWebsite': mentaObj.baseWebsite,
@@ -284,11 +281,6 @@ async function confidenceFlags(mentaObj, data) {
     // Specs on sameness 
     // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Equality_comparisons_and_sameness
 
-    // console.log('slugggg');
-    // console.log(data.openseaData.slug);
-    // console.log(data.openseaData.slug === undefined);
-    // console.log(data.openseaData.slug === "undefined");
-
     rating['is_twitter_found'] = ('id' in data.twitterData) ? true : false;
     rating['is_opensea_found'] = ('slug' in data.openseaData) ? true : false;
     rating['is_twitter_found_in_opensea'] = ('twitter_username' in data.openseaData) ? true : false;
@@ -305,8 +297,8 @@ async function confidenceFlags(mentaObj, data) {
     rating['is_opensea_link_same_website'] = link_in_opensea === link_in_website;
     rating['is_twitter_link_linktree'] = link_in_twitter === "linktr.ee";
 
-    rating['is_twitter_username_in_website'] = data['twitterData']['username'] === mentaObj.baseTwitterUsername; //twitterUsernameArray[0];
-    rating['is_slug_in_website'] = data['openseaData']['slug'] === mentaObj.baseOpenseaSlug; //openseaSlugArray[0];
+    rating['is_twitter_username_in_website'] = data['twitterData']['username'] === mentaObj.baseTwitterUsername;
+    rating['is_slug_in_website'] = data['openseaData']['slug'] === mentaObj.baseOpenseaSlug;
 
     rating['is_twitter_username_in_blocklist'] = false; // To do: create Blocklist
     rating['is_opensea_slug_in_blocklist'] = false; // To do: create Blocklist
@@ -317,13 +309,8 @@ async function confidenceFlags(mentaObj, data) {
 }
 
 //  Assign A-F rating
-// To do: add recommended sites in rating
-// TBC: All ratings need more insights
+// To do: add recommended sites in rating and stats validation
 async function confidenceRating(mentaObj, data) {
-
-    // console.log("Collecting and transforming data...")
-    // const data = await collectApiData(mentaObj);
-    // console.log(data);
 
     console.log("Assigning confidence flags...")
     const rating = await confidenceFlags(mentaObj, data);
