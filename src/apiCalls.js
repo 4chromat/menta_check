@@ -13,22 +13,22 @@ async function getWebpageUrls(url) {
     console.log("getWebpageUrls")
     var links = [];
     await axios.get(url)
-    .then(res => {
-        const $ = cheerio.load(res.data)
-       
-        // this is a mass object, not an array
-        const linkObjects = $('a');
-        const total = linkObjects.length;
-    
-        for(let i = 0; i < total; i++) {
-            var tmp = linkObjects[i].attribs.href
-            if(tmp!= null && tmp.indexOf("https") > -1 ) {
-                links.push(linkObjects[i].attribs.href);
-            }
-        }
-    }).catch(err => console.error(err))
+        .then(res => {
+            const $ = cheerio.load(res.data)
 
-   return links
+            // this is a mass object, not an array
+            const linkObjects = $('a');
+            const total = linkObjects.length;
+
+            for (let i = 0; i < total; i++) {
+                var tmp = linkObjects[i].attribs.href
+                if (tmp != null && tmp.indexOf("https") > -1) {
+                    links.push(linkObjects[i].attribs.href);
+                }
+            }
+        }).catch(err => console.error(err))
+
+    return links
 }
 
 //-----------------------------------------------
@@ -202,11 +202,9 @@ async function transformOpenseaResponse(collectionName) {
         for (var v of openseaContractsArray) {
             try { // Collections may miss primary_asset_contracts
                 var temp = response['collection']['primary_asset_contracts'][0][v];
-            }
-            catch (e) {
+            } catch (e) {
                 var temp = e;
-            }
-            finally {
+            } finally {
                 data[v] = temp;
             }
         }
@@ -305,13 +303,14 @@ async function confidenceFlags(mentaObj, data) {
 
     rating['is_twitter_link_same_website'] = link_in_twitter === link_in_website;
     rating['is_opensea_link_same_website'] = link_in_opensea === link_in_website;
+    rating['is_twitter_link_linktree'] = link_in_twitter === "linktr.ee";
 
-    rating['is_twitter_username_in_website'] = data['twitterData']['username'] === mentaObj.baseTwitterUsername;//twitterUsernameArray[0];
-    rating['is_slug_in_website'] = data['openseaData']['slug'] === mentaObj.baseOpenseaSlug;//openseaSlugArray[0];
+    rating['is_twitter_username_in_website'] = data['twitterData']['username'] === mentaObj.baseTwitterUsername; //twitterUsernameArray[0];
+    rating['is_slug_in_website'] = data['openseaData']['slug'] === mentaObj.baseOpenseaSlug; //openseaSlugArray[0];
 
-    rating['is_twitter_username_in_blocklist'] = false;  // To do: create Blocklist
-    rating['is_opensea_slug_in_blocklist'] = false;  // To do: create Blocklist
-    rating['is_website_in_blocklist'] = false;  // To do: create Blocklist
+    rating['is_twitter_username_in_blocklist'] = false; // To do: create Blocklist
+    rating['is_opensea_slug_in_blocklist'] = false; // To do: create Blocklist
+    rating['is_website_in_blocklist'] = false; // To do: create Blocklist
 
     return rating;
 
@@ -332,7 +331,7 @@ async function confidenceRating(mentaObj, data) {
 
     console.log("Computing confidence rating...")
 
-    if (  // OpenSea and Twitter not found, then rate NA
+    if ( // OpenSea and Twitter not found, then rate NA
         !rating['is_twitter_found'] &&
         !rating['is_opensea_found']
     ) {
@@ -354,8 +353,7 @@ async function confidenceRating(mentaObj, data) {
         (rating['is_twitter_verified'] &&
             rating['is_twitter_link_same_website'] &&
             rating['is_opensea_found'] &&
-            rating['is_twitter_username_match_opensea_twitter'])
-        ||
+            rating['is_twitter_username_match_opensea_twitter']) ||
         (rating['is_opensea_safelist'] &&
             rating['is_opensea_link_same_website'] &&
             rating['is_twitter_found'] &&
@@ -364,14 +362,18 @@ async function confidenceRating(mentaObj, data) {
 
         rating['rate'] = 'A';
 
-    } else if ( // One account verified and other found, then rate 'B'
+    } else if ( // One account verified and other found, or all found, then rate 'B'
         (rating['is_twitter_verified'] &&
             rating['is_twitter_link_same_website'] &&
-            rating['is_opensea_found'])
-        ||
+            rating['is_opensea_found']) ||
         (rating['is_opensea_safelist'] &&
             rating['is_opensea_link_same_website'] &&
-            rating['is_twitter_found'])
+            rating['is_twitter_found']) ||
+        (rating['is_twitter_found'] &&
+            rating['is_opensea_found'] &&
+            rating['is_opensea_link_same_website'] &&
+            rating['is_twitter_found_in_opensea'] &&
+            (rating['is_twitter_link_same_website'] || rating['is_twitter_link_linktree']))
     ) {
 
         rating['rate'] = 'B';
@@ -380,13 +382,11 @@ async function confidenceRating(mentaObj, data) {
         (rating['is_twitter_found'] &&
             rating['is_twitter_link_same_website'] &&
             !rating['is_opensea_found']
-        )
-        ||
+        ) ||
         (rating['is_opensea_found'] &&
             rating['is_opensea_link_same_website'] &&
             !rating['is_twitter_found'])
     ) {
-
         rating['rate'] = 'C';
 
     } else if ( // Accounts not verified, mismatch, or data clash then rate 'D'
@@ -425,7 +425,7 @@ async function confidenceRating(mentaObj, data) {
         data['runTimeMSecs'] = `${Math.floor((start - start))}`;
 
     }
-    
+
     return data;
 }
 

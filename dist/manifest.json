@@ -13,7 +13,7 @@
   "permissions": ["activeTab", "scripting"],
   "action": {
     "default_popup": "index.html",
-    "default_icon": "img/favicon_io/fav1_128.png"
+    "default_icon": "img/favicon_io/favicon_128.png"
     
   }
 }
