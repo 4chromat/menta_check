@@ -135,7 +135,7 @@ function getAllURLCurTab() {
     for (var i = 0; i < urls.length; i++) {
 
         const cur = urls[i].getAttribute('href');
-
+        // console.log(cur)
         if (cur == null || cur === '/') continue;
 
         if (cur.indexOf("https://opensea.io/collection/") > -1) {
@@ -209,7 +209,7 @@ async function mainProcess(url, openseaURLs, twitterURLs) {
         baseTwitter = getTwitterUsername([url])[0];
         console.log(baseTwitter);
         twitterData = await transformTwitterResponse(baseTwitter);
-        console.log(twitterData);
+
     } else if (isOpenseaURL(url)) {
 
         uniqueUrl = false;
@@ -272,6 +272,8 @@ async function mainProcess(url, openseaURLs, twitterURLs) {
 
         if (twitterData === null) {
             baseTwitter = twitterUsernames ? twitterUsernames[0] : null;
+            if (twitterData === null && openseaData.twitter_username)
+                baseTwitter = openseaData.twitter_username;
             twitterData = await transformTwitterResponse(baseTwitter);
         }
 

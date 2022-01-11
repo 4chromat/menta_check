@@ -413,12 +413,14 @@ async function confidenceRating(mentaObj) {
 function standarizeUrl(link) {
     //  Clean domain name and extension from url for matching 
     // i.e.  https://www.website.com/#3223/  -> website.com
+    // i.e. https://clonex.rtfkt.com/ -> rtfkt.com
 
     if (link === undefined || link === null) { return null }
 
     link = link.replace('https://', '').replace('http://', '');
     link = link.replace(/^www\./, '');
     link = link.replace(/\/.*$/g, '');
+    link = link.split(".").slice(-2).join('.')
     return link
 }
 
