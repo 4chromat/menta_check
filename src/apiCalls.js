@@ -45,7 +45,6 @@ import { getBearerToken, getOpenseaKey } from './getApiKeys.js'
 const twitterEndpointURL = "https://api.twitter.com/2/users/by?usernames=";
 
 const start = Date.now();
-const runTest = false;
 
 const twitterFieldsArray = [
     'created_at',
@@ -404,19 +403,9 @@ async function confidenceRating(mentaObj) {
 
     mentaObj['rating'] = rating;
 
-    if (runTest === false) {
 
-        mentaObj['runTest'] = runTest;
-        mentaObj['timestamp'] = Date.now();
-        mentaObj['runTimeMSecs'] = `${Math.floor((Date.now() - start))}`;
-
-    } else {
-
-        mentaObj['runTest'] = runTest;
-        mentaObj['timestamp'] = start - start;
-        mentaObj['runTimeMSecs'] = `${Math.floor((start - start))}`;
-
-    }
+    mentaObj['timestamp'] = Date.now();
+    mentaObj['runTimeMSecs'] = `${Math.floor((Date.now() - start))}`;
 
     return mentaObj;
 }
