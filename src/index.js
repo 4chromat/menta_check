@@ -1,18 +1,21 @@
-import { collectApiData, confidenceRating, getWebpageUrls } from './apiCalls.js';
+import { confidenceRating, getWebpageUrls } from './apiCalls.js';
+import { transformTwitterResponse, transformOpenseaResponse, transformWebsiteScrape }
+from './apiCalls.js';
 
 (async function() {
-    console.log("Clicked extension")
+    console.log("Clicked extension");
     let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
     chrome.scripting.executeScript({
         target: { tabId: tab.id },
         function: getAllURLCurTab
     }, (injectionResults) => {
-        let openseaURL = injectionResults[0].result[0]
-        let twitterURL = injectionResults[0].result[1]
-        mainProcess(tab.url, openseaURL, twitterURL)
+        let openseaURLs = injectionResults[0].result[0];
+        let twitterURLs = injectionResults[0].result[1];
+        mainProcess(tab.url, openseaURLs, twitterURLs);
     });
 })();
+
 
 //-----------------------------------------------
 // UI FUNCTIONS
@@ -21,7 +24,7 @@ import { collectApiData, confidenceRating, getWebpageUrls } from './apiCalls.js'
 // dataObj: result coming from api
 // uniqueUrl: boolean if tab url is not opensea or twitter page
 
-function setResults(dataObj, uniqueUrl) {
+function setResults(dataObj) {
 
     let rate = dataObj.rating.rate;
 
@@ -123,63 +126,50 @@ function createListDiv(info, iconStatus) {
 
 // Function to get all links from current tab
 function getAllURLCurTab() {
-    var opensea = [];
-    var twitter = [];
+    var openseaURLs = [];
+    var twitterURLs = [];
     var urls = document.getElementsByTagName("a");
 
     console.log("Collecting URLs...");
 
     for (var i = 0; i < urls.length; i++) {
+
         const cur = urls[i].getAttribute('href');
+
         if (cur == null || cur === '/') continue;
+
         if (cur.indexOf("https://opensea.io/collection/") > -1) {
-            opensea.push(cur);
-        }
-        if (cur.indexOf("https://www.twitter.com") > -1 || cur.indexOf("https://twitter.com") > -1) {
-            twitter.push(cur);
+            // if (!isDuplicate(openseaURLs, cur)) {
+            openseaURLs.push(cur);
+            // }
+        } else if (cur.indexOf("https://www.twitter.com/") > -1 || cur.indexOf("https://twitter.com/") > -1) {
+            // if (!isDuplicate(twitterURLs, cur)) {
+            twitterURLs.push(cur);
+            // }
         }
     }
 
     console.log("OpenSea URLs:");
-    console.log(opensea);
+    console.log(openseaURLs);
     console.log("Twitter URLs:");
-    console.log(twitter);
+    console.log(twitterURLs);
 
-    return [opensea, twitter]
+    return [openseaURLs, twitterURLs]
 }
 
-function getTwitterUrl(url, twitterURLs, uniqueUrl) {
-    // Check if front tab is a profile page in Twitter, if so toggle uniqueUrl
-    if (url.indexOf("https://www.twitter.com") > -1 || url.indexOf("https://twitter.com") > -1) {
-
-        if (!isDuplicate(twitterURLs, url)) {
-            twitterURLs.push(url);
-        }
-        uniqueUrl = false
-    }
-    return twitterURLs, uniqueUrl;
+function isTwitterURL(url) {
+    return (url.indexOf("https://www.twitter.com/") > -1 || url.indexOf("https://twitter.com/") > -1) ? true : false
 }
 
-function getOpenSeaUrl(url, openseaURLs, uniqueUrl) {
-    // Check if front tab is a profile page in OpenSea, if so toggle uniqueUrl
-    if (url.indexOf("https://opensea.io/collection/") > -1) {
-
-        // before adding make sure not duplicate
-        if (!isDuplicate(openseaURLs, url)) {
-            openseaURLs.push(url);
-        }
-        uniqueUrl = false
-    }
-    return openseaURLs, uniqueUrl;
+function isOpenseaURL(url) {
+    return (url.indexOf("https://opensea.io/collection/") > -1) ? true : false
 }
 
 function getTwitterUsername(twitterURLs) {
-    // console.log("getTwitterUsername");
-    var twitterUsernames = []
-        // Parse all Twitter slugs from Twitter URLs found on front tab
+    var twitterUsernames = [];
+    console.log(twitterURLs);
     for (var urls in twitterURLs) {
         if (twitterURLs[urls] !== null || twitterURLs[urls] != undefined) {
-            //console.log(twitterURLs[urls])
             var a = twitterURLs[urls].split("/");
             if (!isDuplicate(twitterUsernames, a[a.length - 1]))
                 twitterUsernames.push(a[a.length - 1])
@@ -188,13 +178,10 @@ function getTwitterUsername(twitterURLs) {
     return twitterUsernames;
 }
 
-function getOpenSeaSlug(openseaURLs) {
-    //console.log("getOpenSeaSlug");
+function getOpenseaSlug(openseaURLs) {
     var openseaSlugs = []
     for (var urls in openseaURLs) {
-
         if (openseaURLs[urls] !== null || openseaURLs[urls] != undefined) {
-            //console.log(openseaURLs[urls])
             var a = openseaURLs[urls].split("/");
             if (!isDuplicate(openseaSlugs, a[4]))
                 openseaSlugs.push(a[4])
@@ -210,94 +197,123 @@ function getOpenSeaSlug(openseaURLs) {
 // Main function grabs slugs and runs API for restuls
 async function mainProcess(url, openseaURLs, twitterURLs) {
 
-    const baseWebsite = url
-    var uniqueUrl = true
-    var checkBase = false
+    var uniqueUrl = true;
+    var baseWebsite = null;
+    var baseTwitter = null;
+    var baseSlug = null;
+    var websiteData = null;
+    var twitterData = null;
+    var openseaData = null;
+    var openseaSlugs = null;
+    var twitterUsernames = null;
 
-    console.log("Collecting slugs and usernames to call APIs...");
-    openseaURLs, uniqueUrl = getOpenSeaUrl(baseWebsite, openseaURLs, uniqueUrl);
-    // IF current tab is twitter or opensea, make sure first ULR is that!
-    if (!uniqueUrl && openseaURLs.length > 1) {
-        let tmp = openseaURLs[0];
-        let tmp1 = openseaURLs[openseaURLs.length - 1];
-        openseaURLs[0] = tmp1;
-        openseaURLs[openseaURLs.length - 1] = tmp;
-        checkBase = true
+    console.log("Collecting profile handles and calling APIs...");
+
+    // If front tab is Twitter/OpenSea profile grab basewebsite from it
+    if (isTwitterURL(url)) {
+
+        uniqueUrl = false;
+        baseTwitter = getTwitterUsername([url])[0];
+        twitterData = await transformTwitterResponse(baseTwitter);
+
+    } else if (isOpenseaURL(url)) {
+
+        uniqueUrl = false;
+        baseSlug = getOpenseaSlug([url])[0];
+        openseaData = await transformOpenseaResponse(baseSlug);
+
     }
-    twitterURLs, uniqueUrl = getTwitterUrl(baseWebsite, twitterURLs, uniqueUrl);
-    // IF current tab is twitter or opensea, make sure first ULR is that!
-    if (!checkBase && !uniqueUrl && twitterURLs.length > 1) {
-        let tmp = twitterURLs[0];
-        let tmp1 = twitterURLs[twitterURLs.length - 1];
-        twitterURLs[0] = tmp1;
-        twitterURLs[twitterURLs.length - 1] = tmp;
-    }
 
-    var openseaSlugs = getOpenSeaSlug(openseaURLs)
-    var twitterUsernames = getTwitterUsername(twitterURLs)
-    let baseSlug = openseaSlugs.length > 0 ? openseaSlugs[0] : null;
-    let baseTwitter = twitterUsernames.length > 0 ? twitterUsernames[0] : null;
+    // If front tab is a unique url scrape Twitter and OpenSea handles from it
+    if (uniqueUrl) {
 
-    var mentaObj = {
-        baseWebsite: baseWebsite,
-        twitterUsernameArray: twitterUsernames,
-        openseaSlugArray: openseaSlugs,
-        baseTwitterUsername: baseTwitter,
-        baseOpenseaSlug: baseSlug
-    };
+        baseWebsite = url;
 
-    // api calls with usernames and slugs
-    console.log("Collecting and transforming data...");
-    const data = await collectApiData(mentaObj);
-    console.log(data);
+        openseaSlugs = getOpenseaSlug(openseaURLs);
+        baseSlug = openseaSlugs.length > 0 ? openseaSlugs[0] : null;
+        openseaData = await transformOpenseaResponse(baseSlug);
 
-    // if its not uniqueURL then we need to parse website to check if links match
-    if (!uniqueUrl) {
-        console.log("Scrape website for data in unique URL")
-        var extendedUrl = null;
-        if (data.openseaData.status !== 'failed' && data.openseaData.external_url !== "") {
-            extendedUrl = data.openseaData.external_url
-        } else if (data.twitterData.status !== 'failed' && data.twitterData.expanded_url !== "") {
-            extendedUrl = data.twitterData.expanded_url
+        twitterUsernames = getTwitterUsername(twitterURLs)
+        baseTwitter = twitterUsernames.length > 0 ? twitterUsernames[0] : null;
+        twitterData = await transformTwitterResponse(baseTwitter);
+
+        websiteData = transformWebsiteScrape(baseWebsite, twitterUsernames, openseaSlugs);
+
+    } else {
+        // If front tab is Twitter profile then scrape the website link listed to get OpenSea slugs
+        // If front tab is OpenSea profile then scrape the website link listed to get Twitter usernames
+
+        console.log("Using OpenSea and Twitter profile to scrape unique URL")
+
+        if (openseaData && openseaData.external_url) {
+            baseWebsite = openseaData.external_url;
+        } else if (twitterData && twitterData.expanded_url) {
+            baseWebsite = twitterData.expanded_url;
         }
-        console.log("Scrape website for data in unique URL " + extendedUrl);
-        // if user is not on a website , do scraping on result url to check compatability 
-        if (extendedUrl != "") {
-            var links = await getWebpageUrls(extendedUrl);
 
+        console.log("Scraping unique URL found: " + baseWebsite);
+
+        if (baseWebsite) {
+
+            var links = await getWebpageUrls(baseWebsite);
+            const openseaURLsWeb = []
+            const twitterURLsWeb = []
+            console.log(links);
             if (links.length > 0) {
-                // only get twitter and openSea links
-                var openseaURLs_web = []
-                var twitterURLs_web = []
-                var uniqueURL_web = true
-                for (var urls in links) {
-                    uniqueURL_web = true
-                    openseaURLs_web, uniqueURL_web = getOpenSeaUrl(links[urls], openseaURLs_web, uniqueURL_web);
-                    // if uniqueUrl still true, means is not openSea link , check if twitter
-                    if (uniqueURL_web)
-                        twitterURLs_web, uniqueURL_web = getTwitterUrl(links[urls], twitterURLs_web, uniqueURL_web);
+                for (var link of links) {
+                    // only get twitter and openSea links
+                    if (isOpenseaURL(link)) openseaURLsWeb.push(link);
+                    if (isTwitterURL(link)) twitterURLsWeb.push(link);
                 }
-                var openseaSlugs_web = getOpenSeaSlug(openseaURLs_web)
-                var twitterUsernames_web = getTwitterUsername(twitterURLs_web)
 
-                mentaObj = {
-                    baseWebsite: extendedUrl,
-                    twitterUsernameArray: twitterUsernames,
-                    openseaSlugArray: openseaSlugs,
-                    baseTwitterUsername: twitterUsernames_web[0],
-                    baseOpenseaSlug: openseaSlugs_web[0]
-                };
+                openseaSlugs = getOpenseaSlug(openseaURLsWeb);
+                twitterUsernames = getTwitterUsername(twitterURLsWeb); ///////
+
+            } else {
+                console.log('No Twitter or OpenSea links found');
             }
         }
-    }
-    console.log("Call confidenceRating: ");
-    console.log(mentaObj)
-    const result = await confidenceRating(mentaObj, data);
-    console.log("Output:");
-    console.log(result)
 
-    setResults(result, uniqueUrl)
+        websiteData = transformWebsiteScrape(baseWebsite, twitterUsernames, openseaSlugs);
+
+
+        if (twitterData === null) {
+            baseTwitter = twitterUsernames ? twitterUsernames[0] : null;
+            twitterData = await transformTwitterResponse(baseTwitter);
+        }
+
+        if (openseaData === null) {
+            baseSlug = openseaSlugs ? openseaSlugs[0] : null;
+            openseaData = await transformOpenseaResponse(baseSlug);
+        }
+
+    }
+
+    const mentaObj = {
+        'frontTab': url,
+        'baseTwitter': baseTwitter,
+        'baseSlug': baseSlug,
+        'baseWebsite': baseWebsite,
+        'twitterData': twitterData,
+        'openseaData': openseaData,
+        'websiteData': websiteData
+    }
+
+    console.log("Data : ");
+    console.log('Base Website ' + baseWebsite);
+    console.log('Base Twitter: ' + baseTwitter);
+    console.log('Base OpenSea ' + baseSlug);
+    console.log(mentaObj);
+
+    console.log("Call confidenceRating: ");
+    const result = await confidenceRating(mentaObj);
+
+    console.log("Output:");
+    console.log(result);
+
+    setResults(result);
 }
+
 
 function isDuplicate(array, tmp) {
     for (var index in array) {

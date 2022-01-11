@@ -5,13 +5,12 @@ import axios from "axios";
 
 const cheerio = require('cheerio');
 
-
 //-----------------------------------------------
 // WEBPAGE FUNCTIONS
 //-----------------------------------------------
 
+// async website scrapping needs to go through cheerio
 async function getWebpageUrls(url) {
-    console.log("getWebpageUrls")
     var links = [];
     await axios.get(url)
         .then(res => {
@@ -40,7 +39,6 @@ async function getWebpageUrls(url) {
 // Twitter API call as in Twitter-API-v2-sample-code
 // https://github.com/twitterdev/Twitter-API-v2-sample-code/blob/main/User-Lookup/get_users_with_bearer_token.js
 // https://developer.twitter.com/en/docs/twitter-api/users/lookup/api-reference/get-users-by-username-username
-
 
 import { getBearerToken, getOpenseaKey } from './getApiKeys.js'
 
@@ -151,26 +149,36 @@ async function getOpenseaRequest(collectionName) {
 async function transformTwitterResponse(username) {
 
     try {
-        // Get Twitter response 
-        const response = await getTwitterRequest(username);
 
-        // Parsing of response continues async
-        const data = response['data'][0];
+        if (username) {
 
-        data['expanded_url'] = data['entities']['url']['urls'][0]['expanded_url'];
-        data['followers_count'] = data['public_metrics']['followers_count'];
-        data['following_count'] = data['public_metrics']['following_count'];
-        data['tweet_count'] = data['public_metrics']['tweet_count'];
+            const response = await getTwitterRequest(username);
 
-        delete data['entities'];
-        delete data['public_metrics'];
+            const data = response['data'][0];
 
-        data['status'] = 'completed';
+            data['expanded_url'] = data['entities']['url']['urls'][0]['expanded_url'];
+            data['followers_count'] = data['public_metrics']['followers_count'];
+            data['following_count'] = data['public_metrics']['following_count'];
+            data['tweet_count'] = data['public_metrics']['tweet_count'];
 
-        return data;
+            delete data['entities'];
+            delete data['public_metrics'];
+
+            data['status'] = 'completed';
+
+            return data;
+
+        } else {
+
+            return {
+                'status': 'missing baseTwitter'
+            }
+        }
 
     } catch (e) {
+
         console.log(e);
+
         return {
             'status': 'failed',
             'errorMessage': `${e}`
@@ -182,37 +190,45 @@ async function transformOpenseaResponse(collectionName) {
 
     try {
 
-        if (collectionName === undefined)
-            collectionName = '';
+        if (collectionName) {
 
-        const response = await getOpenseaRequest(collectionName);
+            const response = await getOpenseaRequest(collectionName);
 
-        let data = {};
+            let data = {};
 
-        for (var v of openseaAttributesArray) {
-            data[v] = response['collection'][v];
-        }
+            for (var v of openseaAttributesArray) {
+                data[v] = response['collection'][v];
+            }
 
-        for (var v of openseaStatsArray) {
-            data[v] = response['collection']['stats'][v];
-        }
+            for (var v of openseaStatsArray) {
+                data[v] = response['collection']['stats'][v];
+            }
 
-        for (var v of openseaContractsArray) {
-            try { // Collections may miss primary_asset_contracts
-                var temp = response['collection']['primary_asset_contracts'][0][v];
-            } catch (e) {
-                var temp = e;
-            } finally {
-                data[v] = temp;
+            for (var v of openseaContractsArray) {
+                try { // Collections may miss primary_asset_contracts
+                    var temp = response['collection']['primary_asset_contracts'][0][v];
+                } catch (e) {
+                    var temp = e;
+                } finally {
+                    data[v] = temp;
+                }
+            }
+
+            data['status'] = 'completed';
+
+            return data;
+
+        } else {
+            return {
+                'status': 'missing baseOpensea'
             }
         }
 
-        data['status'] = 'completed';
-
-        return data;
 
     } catch (e) {
+
         console.log(e);
+
         return {
             'status': 'failed',
             'errorMessage': `${e}`
@@ -220,22 +236,30 @@ async function transformOpenseaResponse(collectionName) {
     }
 }
 
-function transformWebsiteScrape(mentaObj) {
+function transformWebsiteScrape(baseWebsite, twitterUsernames, openseaSlugs) {
 
     try {
 
-        const data = {
-            'url': mentaObj.baseWebsite,
-            'twitter_username_array': mentaObj.twitterUsernameArray,
-            'opensea_slug_array': mentaObj.openseaSlugArray
-        };
+        if (baseWebsite) {
+            const data = {
+                'url': baseWebsite,
+                'twitter_username_array': twitterUsernames,
+                'opensea_slug_array': openseaSlugs
+            };
 
-        data['status'] = 'completed';
+            data['status'] = 'completed';
 
-        return data;
+            return data;
+        } else {
+            return {
+                'status': 'missing baseWebsite'
+            }
+        }
 
     } catch (e) {
+
         console.log(e);
+
         return {
             'status': 'failed',
             'errorMessage': `${e}`
@@ -248,57 +272,39 @@ function transformWebsiteScrape(mentaObj) {
 // SCORING FUNCTIONS
 //-----------------------------------------------
 
-//  Data collection from Twitter and OpenSea
-async function collectApiData(mentaObj) {
-
-    const websiteData = transformWebsiteScrape(mentaObj);
-
-    const twitterData = await transformTwitterResponse(mentaObj.baseTwitterUsername);
-
-    const openseaData = await transformOpenseaResponse(mentaObj.baseOpenseaSlug);
-
-    var data = {
-        'baseTwitter': mentaObj.baseTwitterUsername,
-        'baseSlug': mentaObj.baseOpenseaSlug,
-        'baseWebsite': mentaObj.baseWebsite,
-        'twitterData': twitterData,
-        'openseaData': openseaData,
-        'websiteData': websiteData
-    }
-
-    return data;
-}
 
 //  Annotate confidence flags
-async function confidenceFlags(mentaObj, data) {
+async function confidenceFlags(mentaObj) {
+
     const rating = {};
 
-    // Twitter and OpenSea linked sites often list http, no www, and /$ 
-    const link_in_opensea = standarizeUrl(data['openseaData']['external_url']);
-    const link_in_twitter = standarizeUrl(data['twitterData']['expanded_url']);
-    const link_in_website = standarizeUrl(mentaObj.baseWebsite);
+    // linked sites often list http, no www, and /$, standarize before comparison
+    const linkInOpensea = ('external_url' in mentaObj.openseaData) ? standarizeUrl(mentaObj['openseaData']['external_url']) : null;
+    const linkInTwitter = ('expanded_url' in mentaObj.twitterData) ? standarizeUrl(mentaObj['twitterData']['expanded_url']) : null;
+    const linkInWebsite = standarizeUrl(mentaObj.baseWebsite);
 
-    // Specs on sameness 
-    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Equality_comparisons_and_sameness
+    const twitterUsername = mentaObj['twitterData']['username'];
+    const twitter_in_opensea = mentaObj['openseaData']['twitter_username'];
+    const isTwitterVerified = mentaObj['twitterData']['verified'];
+    const isOpenseaSafelist = (mentaObj['openseaData']['safelist_request_status'] === 'verified') ||
+        (mentaObj['openseaData']['safelist_request_status'] === 'approved');
 
-    rating['is_twitter_found'] = ('id' in data.twitterData) ? true : false;
-    rating['is_opensea_found'] = ('slug' in data.openseaData) ? true : false;
-    rating['is_twitter_found_in_opensea'] = ('twitter_username' in data.openseaData) ? true : false;
+    rating['is_twitter_found'] = ('id' in mentaObj.twitterData) ? true : false;
+    rating['is_opensea_found'] = ('slug' in mentaObj.openseaData) ? true : false;
+    rating['is_twitter_found_in_opensea'] = ('twitter_username' in mentaObj.openseaData) ? true : false;
 
-    rating['is_twitter_verified'] = data['twitterData']['verified'] === true;
-    rating['is_opensea_safelist'] = (data['openseaData']['safelist_request_status'] === 'verified') ||
-        (data['openseaData']['safelist_request_status'] === 'approved');
-    // || (mentaObj.baseWebsite === 'https://opensea.io');  // Special case for OpenSea website.  Todo: allowlist
+    rating['is_twitter_verified'] = isTwitterVerified === true;
+    rating['is_opensea_safelist'] = isOpenseaSafelist
 
-    rating['is_twitter_username_match_opensea_twitter'] = data['openseaData']['twitter_username'] === data['twitterData']['username'];
-    rating['is_opensea_webpage_match_twitter_webpage'] = data['openseaData']['external_url'] === data['twitterData']['expanded_url'];
+    rating['is_twitter_username_match_opensea_twitter'] = twitter_in_opensea === twitterUsername;
+    rating['is_opensea_webpage_match_twitter_webpage'] = linkInOpensea === linkInTwitter;
 
-    rating['is_twitter_link_same_website'] = link_in_twitter === link_in_website;
-    rating['is_opensea_link_same_website'] = link_in_opensea === link_in_website;
-    rating['is_twitter_link_linktree'] = link_in_twitter === "linktr.ee";
+    rating['is_twitter_link_same_website'] = (linkInTwitter === linkInWebsite) && (linkInTwitter !== null);
+    rating['is_opensea_link_same_website'] = (linkInOpensea === linkInWebsite) && (linkInOpensea !== null);
+    rating['is_twitter_link_linktree'] = linkInTwitter === "linktr.ee";
 
-    rating['is_twitter_username_in_website'] = data['twitterData']['username'] === mentaObj.baseTwitterUsername;
-    rating['is_slug_in_website'] = data['openseaData']['slug'] === mentaObj.baseOpenseaSlug;
+    rating['is_twitter_username_in_website'] = twitterUsername === mentaObj.baseTwitterUsername;
+    rating['is_slug_in_website'] = mentaObj['openseaData']['slug'] === mentaObj.baseOpenseaSlug !== null;
 
     rating['is_twitter_username_in_blocklist'] = false; // To do: create Blocklist
     rating['is_opensea_slug_in_blocklist'] = false; // To do: create Blocklist
@@ -310,10 +316,10 @@ async function confidenceFlags(mentaObj, data) {
 
 //  Assign A-F rating
 // To do: add recommended sites in rating and stats validation
-async function confidenceRating(mentaObj, data) {
+async function confidenceRating(mentaObj) {
 
     console.log("Assigning confidence flags...")
-    const rating = await confidenceFlags(mentaObj, data);
+    const rating = await confidenceFlags(mentaObj);
     console.log(rating);
 
     console.log("Computing confidence rating...")
@@ -397,38 +403,36 @@ async function confidenceRating(mentaObj, data) {
     console.log(rating['rate']);
     console.log(rating);
 
-    data['rating'] = rating;
+    mentaObj['rating'] = rating;
 
     if (runTest === false) {
 
-        data['runTest'] = runTest;
-        data['timestamp'] = Date.now();
-        data['runTimeMSecs'] = `${Math.floor((Date.now() - start))}`;
+        mentaObj['runTest'] = runTest;
+        mentaObj['timestamp'] = Date.now();
+        mentaObj['runTimeMSecs'] = `${Math.floor((Date.now() - start))}`;
 
     } else {
 
-        data['runTest'] = runTest;
-        data['timestamp'] = start - start;
-        data['runTimeMSecs'] = `${Math.floor((start - start))}`;
+        mentaObj['runTest'] = runTest;
+        mentaObj['timestamp'] = start - start;
+        mentaObj['runTimeMSecs'] = `${Math.floor((start - start))}`;
 
     }
 
-    return data;
+    return mentaObj;
 }
-
-export { collectApiData, confidenceRating, getWebpageUrls };
-
 
 function standarizeUrl(link) {
     //  Clean domain name and extension from url for matching 
     // i.e.  https://www.website.com/#3223/  -> website.com
 
-    if (link === undefined || link === null) { link = '' }
-    console.log('Standarized link:');
-    console.log(link);
-    link = link.replace('https://', '').replace('http://', '')
-    link = link.replace(/^www\./, '')
+    if (link === undefined || link === null) { return null }
+
+    link = link.replace('https://', '').replace('http://', '');
+    link = link.replace(/^www\./, '');
     link = link.replace(/\/.*$/g, '');
-    console.log(link);
     return link
 }
+
+export { confidenceRating, getWebpageUrls };
+export { transformTwitterResponse, transformOpenseaResponse, transformWebsiteScrape };
