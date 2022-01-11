@@ -58,42 +58,42 @@ function setResults(dataObj) {
 
     // setting twitter data
     if (twitterV)
-        resultList.appendChild(createListDiv("Twitter Verified", "ver"));
+        resultList.appendChild(createListDiv("Twitter profile verified", "ver"));
     else if (twitterF)
-        resultList.appendChild(createListDiv("Twitter Found", "good"))
+        resultList.appendChild(createListDiv("Twitter profile found", "good"))
     else
-        resultList.appendChild(createListDiv("Twitter Missing", "na"))
+        resultList.appendChild(createListDiv("Twitter profile missing", "na"))
 
     // settting openSea data
     if (openSeaV)
-        resultList.appendChild(createListDiv("OpenSea Verified", "ver"))
+        resultList.appendChild(createListDiv("OpenSea profile verified", "ver"))
     else if (openseaF)
-        resultList.appendChild(createListDiv("OpenSea Found", "good"))
+        resultList.appendChild(createListDiv("OpenSea profile found", "good"))
     else
-        resultList.appendChild(createListDiv("OpenSea Missing", "na"))
+        resultList.appendChild(createListDiv("OpenSea profile missing", "na"))
 
     // setting combined data with Open Sea
     if (openseaF && twitterF) {
         if (openSeaTwitterM)
-            resultList.appendChild(createListDiv("OpenSea-Twitter Match", "good"));
+            resultList.appendChild(createListDiv("OpenSea-Twitter match", "good"));
         else if (twitterFOpensea)
-            resultList.appendChild(createListDiv("OpenSea-Twitter Mismatch", "bad"));
+            resultList.appendChild(createListDiv("OpenSea-Twitter mismatch", "bad"));
     }
 
     // setting combined data with Twitter
     if (twitterMWeb)
-        resultList.appendChild(createListDiv("Twitter-Website Match", "good"));
+        resultList.appendChild(createListDiv("Twitter-Website match", "good"));
     else if (twitterF)
-        resultList.appendChild(createListDiv("Twitter-Website Misatch", "bad"));
+        resultList.appendChild(createListDiv("Twitter-Website misatch", "bad"));
 
     // if in website url
     if (openSeaMWeb)
-        resultList.appendChild(createListDiv("OpenSea-Website Match", "good"));
+        resultList.appendChild(createListDiv("OpenSea-Website match", "good"));
     else if (openseaF)
-        resultList.appendChild(createListDiv("OpenSea-Website Misatch", "bad"));
+        resultList.appendChild(createListDiv("OpenSea-Website misatch", "bad"));
 
     // setting twitter data
-    if (!twitterF && !openseaF)
+    if (!openseaF)
         resultList.appendChild(createListDiv("Can you mint here?", "question"));
 
     // setting floor price if found
@@ -139,13 +139,9 @@ function getAllURLCurTab() {
         if (cur == null || cur === '/') continue;
 
         if (cur.indexOf("https://opensea.io/collection/") > -1) {
-            // if (!isDuplicate(openseaURLs, cur)) {
             openseaURLs.push(cur);
-            // }
         } else if (cur.indexOf("https://www.twitter.com/") > -1 || cur.indexOf("https://twitter.com/") > -1) {
-            // if (!isDuplicate(twitterURLs, cur)) {
             twitterURLs.push(cur);
-            // }
         }
     }
 
@@ -167,12 +163,10 @@ function isOpenseaURL(url) {
 
 function getTwitterUsername(twitterURLs) {
     var twitterUsernames = [];
-    console.log(twitterURLs);
     for (var urls in twitterURLs) {
-        if (twitterURLs[urls] !== null || twitterURLs[urls] != undefined) {
+        if (twitterURLs[urls]) {
             var a = twitterURLs[urls].split("/");
-            if (!isDuplicate(twitterUsernames, a[a.length - 1]))
-                twitterUsernames.push(a[a.length - 1])
+            twitterUsernames.push(a[3])
         }
     }
     return twitterUsernames;
@@ -181,10 +175,9 @@ function getTwitterUsername(twitterURLs) {
 function getOpenseaSlug(openseaURLs) {
     var openseaSlugs = []
     for (var urls in openseaURLs) {
-        if (openseaURLs[urls] !== null || openseaURLs[urls] != undefined) {
+        if (openseaURLs[urls]) {
             var a = openseaURLs[urls].split("/");
-            if (!isDuplicate(openseaSlugs, a[4]))
-                openseaSlugs.push(a[4])
+            openseaSlugs.push(a[4])
         }
     }
     return openseaSlugs;
@@ -214,8 +207,9 @@ async function mainProcess(url, openseaURLs, twitterURLs) {
 
         uniqueUrl = false;
         baseTwitter = getTwitterUsername([url])[0];
+        console.log(baseTwitter);
         twitterData = await transformTwitterResponse(baseTwitter);
-
+        console.log(twitterData);
     } else if (isOpenseaURL(url)) {
 
         uniqueUrl = false;
@@ -258,7 +252,6 @@ async function mainProcess(url, openseaURLs, twitterURLs) {
             var links = await getWebpageUrls(baseWebsite);
             const openseaURLsWeb = []
             const twitterURLsWeb = []
-            console.log(links);
             if (links.length > 0) {
                 for (var link of links) {
                     // only get twitter and openSea links
@@ -300,9 +293,9 @@ async function mainProcess(url, openseaURLs, twitterURLs) {
     }
 
     console.log("Data : ");
-    console.log('Base Website ' + baseWebsite);
+    console.log('Base Website: ' + baseWebsite);
     console.log('Base Twitter: ' + baseTwitter);
-    console.log('Base OpenSea ' + baseSlug);
+    console.log('Base OpenSea: ' + baseSlug);
     console.log(mentaObj);
 
     console.log("Call confidenceRating: ");
@@ -312,14 +305,4 @@ async function mainProcess(url, openseaURLs, twitterURLs) {
     console.log(result);
 
     setResults(result);
-}
-
-
-function isDuplicate(array, tmp) {
-    for (var index in array) {
-        if (array[index] === tmp) {
-            return true
-        }
-    }
-    return false
 }

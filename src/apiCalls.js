@@ -320,7 +320,6 @@ async function confidenceRating(mentaObj) {
 
     console.log("Assigning confidence flags...")
     const rating = await confidenceFlags(mentaObj);
-    console.log(rating);
 
     console.log("Computing confidence rating...")
 
