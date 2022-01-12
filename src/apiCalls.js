@@ -424,5 +424,5 @@ function standarizeUrl(link) {
     return link
 }
 
-export { confidenceRating, getWebpageUrls };
+export { confidenceRating, getWebpageUrls, standarizeUrl };
 export { transformTwitterResponse, transformOpenseaResponse, transformWebsiteScrape };

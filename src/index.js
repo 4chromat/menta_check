@@ -1,4 +1,4 @@
-import { confidenceRating, getWebpageUrls } from './apiCalls.js';
+import { confidenceRating, getWebpageUrls, standarizeUrl } from './apiCalls.js';
 import { transformTwitterResponse, transformOpenseaResponse, transformWebsiteScrape }
 from './apiCalls.js';
 
@@ -199,6 +199,7 @@ async function mainProcess(url, openseaURLs, twitterURLs) {
     var openseaData = null;
     var openseaSlugs = null;
     var twitterUsernames = null;
+    var rootDomain = null;
 
     console.log("Collecting profile handles and calling APIs...");
 
@@ -207,7 +208,6 @@ async function mainProcess(url, openseaURLs, twitterURLs) {
 
         uniqueUrl = false;
         baseTwitter = getTwitterUsername([url])[0];
-        console.log(baseTwitter);
         twitterData = await transformTwitterResponse(baseTwitter);
 
     } else if (isOpenseaURL(url)) {
@@ -222,6 +222,7 @@ async function mainProcess(url, openseaURLs, twitterURLs) {
     if (uniqueUrl) {
 
         baseWebsite = url;
+        rootDomain = baseWebsite ? standarizeUrl(baseWebsite) : null;
 
         openseaSlugs = getOpenseaSlug(openseaURLs);
         baseSlug = openseaSlugs.length > 0 ? openseaSlugs[0] : null;
@@ -291,7 +292,8 @@ async function mainProcess(url, openseaURLs, twitterURLs) {
         'baseWebsite': baseWebsite,
         'twitterData': twitterData,
         'openseaData': openseaData,
-        'websiteData': websiteData
+        'websiteData': websiteData,
+        'rootDomain': rootDomain
     }
 
     console.log("Data : ");
