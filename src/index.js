@@ -1,6 +1,7 @@
 import { confidenceRating, getWebpageUrls, standarizeUrl } from './apiCalls.js';
-import { transformTwitterResponse, transformOpenseaResponse, transformWebsiteScrape }
-from './apiCalls.js';
+import { transformTwitterResponse, transformOpenseaResponse, transformWebsiteScrape } from './apiCalls.js';
+import {checkWhiteListFunction, addMentaObjFunction, addLogFunction } from './cloudFunCalls'
+
 
 (async function() {
     console.log("Clicked extension");
@@ -24,23 +25,23 @@ from './apiCalls.js';
 // dataObj: result coming from api
 // uniqueUrl: boolean if tab url is not opensea or twitter page
 
-function setResults(dataObj) {
+function setResults(dataObj, floorPrice) {
 
-    let rate = dataObj.rating.rate;
+    let rate = dataObj.rate;
 
-    let twitterF = dataObj.rating.is_twitter_found;
-    let openseaF = dataObj.rating.is_opensea_found;
+    let twitterF = dataObj.is_twitter_found;
+    let openseaF = dataObj.is_opensea_found;
     let twitterFOpensea = dataObj.is_twitter_found_in_opensea;
 
-    let twitterV = dataObj.rating.is_twitter_verified;
-    let openSeaV = dataObj.rating.is_opensea_safelist;
+    let twitterV = dataObj.is_twitter_verified;
+    let openSeaV = dataObj.is_opensea_safelist;
 
-    let openSeaTwitterM = dataObj.rating.is_twitter_username_match_opensea_twitter;
+    let openSeaTwitterM = dataObj.is_twitter_username_match_opensea_twitter;
 
-    let twitterMWeb = dataObj.rating.is_twitter_link_same_website;
-    let openSeaMWeb = dataObj.rating.is_opensea_link_same_website;
+    let twitterMWeb = dataObj.is_twitter_link_same_website;
+    let openSeaMWeb = dataObj.is_opensea_link_same_website;
 
-    let floorPrice = dataObj.openseaData.floor_price;
+    //let floorPrice = dataObj.openseaData.floor_price?dataObj.openseaData.floor_price:'na';
 
     var resultList = document.getElementById("resultList")
     resultList.innerHTML = '';
@@ -202,20 +203,38 @@ async function mainProcess(url, openseaURLs, twitterURLs) {
     var rootDomain = null;
 
     console.log("Collecting profile handles and calling APIs...");
-
+    var mentaAction = "mentalog";
     // If front tab is Twitter/OpenSea profile grab basewebsite from it
     if (isTwitterURL(url)) {
 
         uniqueUrl = false;
         baseTwitter = getTwitterUsername([url])[0];
+        // SERVER FUNC
+        // if we have  base twitter check server
+        var result = await checkWhiteListFunction(baseTwitter, "base_twitter");
+        if(result != "NOTHING") {
+            console.log("checkWhiteListFunction pass")
+            mentaAction = "allowlist";
+            const mentaBase = {'frontTab': url }
+            setMainResults(result,mentaBase, mentaAction)
+            return;
+        }
         twitterData = await transformTwitterResponse(baseTwitter);
 
     } else if (isOpenseaURL(url)) {
-
         uniqueUrl = false;
         baseSlug = getOpenseaSlug([url])[0];
+        // SERVER FUNC
+        // if we have  base openSea check server
+        var result = await checkWhiteListFunction(baseSlug, "base_slug");
+        if(result != "NOTHING") {
+            mentaAction = "allowlist";
+            console.log("checkWhiteListFunction pass")
+            const mentaBase = {'frontTab': url }
+            setMainResults(result,mentaBase, mentaAction)
+            return;
+        }
         openseaData = await transformOpenseaResponse(baseSlug);
-
     }
 
     // If front tab is a unique url scrape Twitter and OpenSea handles from it
@@ -223,6 +242,18 @@ async function mainProcess(url, openseaURLs, twitterURLs) {
 
         baseWebsite = url;
         rootDomain = baseWebsite ? standarizeUrl(baseWebsite) : null;
+        
+        // SERVER FUNC
+        // if we have  base root domain check server
+        var result = await checkWhiteListFunction(rootDomain, "root_domain");
+        if(result != "NOTHING") {
+            console.log(result)
+            mentaAction = "allowlist";
+            console.log("checkWhiteListFunction pass ")
+            const mentaBase = {'frontTab': url }
+            setMainResults(result, mentaBase, mentaAction)
+            return;
+        }
 
         openseaSlugs = getOpenseaSlug(openseaURLs);
         baseSlug = openseaSlugs.length > 0 ? openseaSlugs[0] : null;
@@ -303,10 +334,43 @@ async function mainProcess(url, openseaURLs, twitterURLs) {
     console.log(mentaObj);
 
     console.log("Call confidenceRating: ");
-    const result = await confidenceRating(mentaObj);
+    const resultFinal = await confidenceRating(mentaObj);
+    setMainResults(resultFinal, mentaObj, mentaAction)
+   
+} 
 
-    console.log("Output:");
-    console.log(result);
-
-    setResults(result);
+function setMainResults(result, mentaObj, mentaAction) {
+    console.log("setMainResults: " + mentaAction);
+   var rate = null;
+   var frontTab = null;
+    if(mentaAction == "mentalog") {
+        setResults(result.rating, result.openseaData.floor_price);
+        rate = mentaObj.rating.rate;
+        frontTab = mentaObj.frontTab;
+        const mentaBase = {
+            'frontTab': frontTab,
+            'baseTwitter': mentaObj.baseTwitter,
+            'baseSlug': mentaObj.baseSlug,
+            'baseWebsite': mentaObj.baseWebsite,
+            'rootDomain': mentaObj.rootDomain,
+            'rate':rate,
+            'result': result
+        }
+    
+        addMentaObjFunction(mentaBase)
+       
+    } else {
+        console.log(result.result);
+        setResults(result.result)
+       
+        rate = result.result.rate
+        frontTab = mentaObj.frontTab;
+    }
+    const bInfo = {
+        front_tab:frontTab,
+        action: mentaAction,
+        rate:rate
+    }
+      
+    addLogFunction(bInfo)
 }

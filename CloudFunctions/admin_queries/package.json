@@ -1,0 +1,16 @@
+{
+  "name": "admin_queries",
+  "version": "1.0.0",
+  "description": "meta admin queries",
+  "main": "index.js",
+  "dependencies": {
+    "axios": "^0.24.0",
+    "firebase-admin": "^9.8.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "add": "npm run index.js"
+  },
+  "author": "",
+  "license": "ISC"
+}
