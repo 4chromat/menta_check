@@ -376,8 +376,12 @@ async function confidenceRating(mentaObj) {
         ) ||
         (rating['is_opensea_found'] &&
             rating['is_opensea_link_same_website'] &&
-            !rating['is_twitter_found'])
+            !rating['is_twitter_found']
+        ) ||
+        (rating['is_opensea_found'] &&
+            rating['is_twitter_found'])
     ) {
+
         rating['rate'] = 'C';
 
     } else if ( // Accounts not verified, mismatch, or data clash then rate 'D'
