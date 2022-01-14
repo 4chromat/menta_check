@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg viewBox="0 0 110 110" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:bx="https://boxy-svg.com">
+  <defs>
+    <linearGradient id="gradient-1-0" gradientUnits="userSpaceOnUse" x1="54.917" y1="25.417" x2="54.917" y2="74.583" gradientTransform="matrix(1, 0, 0, 1, 181.804367, 217.342499)" xlink:href="#gradient-1"/>
+    <linearGradient id="gradient-1" bx:pinned="true">
+      <title>play</title>
+      <stop offset="0" style="stop-color: rgb(255, 196, 68);"/>
+      <stop offset="0.558" style="stop-color: rgb(255, 107, 69);"/>
+      <stop offset="1" style="stop-color: rgb(255, 76, 70);"/>
+    </linearGradient>
+  </defs>
+  <g transform="matrix(1, 0, 0, 1, -177.360657, -212.61969)">
+    <path d="M 231.804 316.509 C 258.958 316.509 280.971 294.496 280.971 267.342 C 280.971 240.188 258.958 218.176 231.804 218.176 C 204.65 218.176 182.638 240.188 182.638 267.342 C 182.638 294.496 204.65 316.509 231.804 316.509 Z" fill="white"/>
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M 219.651 243.341 C 221.25 242.485 223.19 242.579 224.698 243.585 L 254.198 263.252 C 255.566 264.163 256.388 265.699 256.388 267.342 C 256.388 268.986 255.566 270.521 254.198 271.433 L 224.698 291.1 C 223.19 292.106 221.25 292.2 219.651 291.344 C 218.052 290.488 217.054 288.822 217.054 287.009 L 217.054 247.676 C 217.054 245.863 218.052 244.196 219.651 243.341 Z" style="fill: url(#gradient-1-0);"/>
+  </g>
+</svg>
