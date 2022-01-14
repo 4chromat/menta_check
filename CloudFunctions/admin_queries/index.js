@@ -98,6 +98,6 @@ async function addCurated(rDomain, bSlug, bTwitter, rRate) {
     console.log("done adding")
 }
 
-checkWhiteListFunction()
+//checkWhiteListFunction()
 //checkWhitelist("crypto_coven", "base_twitter")
 //addCurated("www.cryptocoven.xyz","cryptocoven","crypto_coven1","B")

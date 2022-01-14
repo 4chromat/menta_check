@@ -220,6 +220,7 @@ async function mainProcess(url, openseaURLs, twitterURLs) {
             return;
         }
         twitterData = await transformTwitterResponse(baseTwitter);
+        rootDomain = twitterData.expanded_url ? standarizeUrl(twitterData.expanded_url) : null;
 
     } else if (isOpenseaURL(url)) {
         uniqueUrl = false;
@@ -235,6 +236,8 @@ async function mainProcess(url, openseaURLs, twitterURLs) {
             return;
         }
         openseaData = await transformOpenseaResponse(baseSlug);
+        rootDomain = openseaData.external_url ? standarizeUrl(openseaData.external_url) : null;
+
     }
 
     // If front tab is a unique url scrape Twitter and OpenSea handles from it
