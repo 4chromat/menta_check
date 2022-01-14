@@ -215,3 +215,6 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Firebase account keys
+serviceAccountKey.json
