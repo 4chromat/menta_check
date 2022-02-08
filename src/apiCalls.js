@@ -282,9 +282,13 @@ async function confidenceFlags(mentaObj) {
     const linkInTwitter = ('expanded_url' in mentaObj.twitterData) ? standarizeUrl(mentaObj['twitterData']['expanded_url']) : null;
     const linkInWebsite = standarizeUrl(mentaObj.baseWebsite);
 
-    const twitterUsername = mentaObj['twitterData']['username'];
-    const twitter_in_opensea = mentaObj['openseaData']['twitter_username'];
+    // twitter handles are case insensitive
+    const twitterUsername = mentaObj['twitterData']['username'] ? mentaObj['twitterData']['username'].toLowerCase() : null;
+    const twitter_in_opensea = mentaObj['openseaData']['twitter_username'] ? mentaObj['openseaData']['twitter_username'].toLowerCase() : null;
+    const baseTwitterUsernameLower = mentaObj.baseTwitterUsername? mentaObj.baseTwitterUsername.toLowerCase() : null;
     const isTwitterVerified = mentaObj['twitterData']['verified'];
+   
+    // OpenSea slugs are case sensitive
     const isOpenseaSafelist = (mentaObj['openseaData']['safelist_request_status'] === 'verified') ||
         (mentaObj['openseaData']['safelist_request_status'] === 'approved');
 
@@ -302,7 +306,7 @@ async function confidenceFlags(mentaObj) {
     rating['is_opensea_link_same_website'] = (linkInOpensea === linkInWebsite) && (linkInOpensea !== null);
     rating['is_twitter_link_linktree'] = linkInTwitter === "linktr.ee";
 
-    rating['is_twitter_username_in_website'] = twitterUsername === mentaObj.baseTwitterUsername;
+    rating['is_twitter_username_in_website'] = twitterUsername === baseTwitterUsernameLower;
     rating['is_slug_in_website'] = mentaObj['openseaData']['slug'] === mentaObj.baseOpenseaSlug !== null;
 
     rating['is_twitter_username_in_blocklist'] = false; // To do: create Blocklist
@@ -403,13 +407,15 @@ async function confidenceRating(mentaObj) {
 
     console.log('Rating:');
     console.log(rating['rate']);
-    console.log(rating);
+    // console.log(rating);  // drop console print before updating on Chrome Store
 
     mentaObj['rating'] = rating;
 
 
     mentaObj['timestamp'] = Date.now();
     mentaObj['runTimeMSecs'] = `${Math.floor((Date.now() - start))}`;
+
+    // console.log(mentaObj);  // drop console print before updating on Chrome Store
 
     return mentaObj;
 }
@@ -425,7 +431,7 @@ function standarizeUrl(link) {
     link = link.replace(/^www\./, '');
     link = link.replace(/\/.*$/g, '');
     link = link.split(".").slice(-2).join('.')
-    return link
+    return link.toLowerCase()
 }
 
 export { confidenceRating, getWebpageUrls, standarizeUrl };

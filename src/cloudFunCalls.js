@@ -7,7 +7,7 @@ async function checkWhiteListFunction(dRoot, dMatch ) {
         const res = await axios.post(checklistFuncUrl, { data: { root_domain: dRoot , match:dMatch } });
         
         if (res.data) {
-            console.log(res.data)
+            // console.log(res.data)  // drop console print before updating on Chrome Store
             return res.data;
         } else {
             throw new Error('Unsuccessful checklistFun request');
@@ -24,7 +24,7 @@ async function addMentaObjFunction(mentaObj) {
         const res = await axios.post(addMentaFuncUrl, { data: { menta_obj:mentaObj } });
         
         if (res.data) {
-            console.log(res.data)
+            // console.log(res.data)  // drop console print before updating on Chrome Store
             return res.data;
         } else {
             throw new Error('Unsuccessful addMenta request');
@@ -40,7 +40,7 @@ async function addLogFunction(info) {
         const res = await axios.post(addLogFuncUrl, { data: { dbinfo:info } });
         
         if (res.data) {
-            console.log(res.data)
+            // console.log(res.data)  // drop console print before updating on Chrome Store
             return res.data;
         } else {
             throw new Error('Unsuccessful addLog request');

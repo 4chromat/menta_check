@@ -1,6 +1,6 @@
 import { confidenceRating, getWebpageUrls, standarizeUrl } from './apiCalls.js';
 import { transformTwitterResponse, transformOpenseaResponse, transformWebsiteScrape } from './apiCalls.js';
-import {checkWhiteListFunction, addMentaObjFunction, addLogFunction } from './cloudFunCalls'
+import { checkWhiteListFunction, addMentaObjFunction, addLogFunction } from './cloudFunCalls'
 
 
 (async function() {
@@ -146,10 +146,11 @@ function getAllURLCurTab() {
         }
     }
 
-    console.log("OpenSea URLs:");
-    console.log(openseaURLs);
-    console.log("Twitter URLs:");
-    console.log(twitterURLs);
+    // drop console print before updating on Chrome Store
+    // console.log("OpenSea URLs:");
+    // console.log(openseaURLs);
+    // console.log("Twitter URLs:");
+    // console.log(twitterURLs);
 
     return [openseaURLs, twitterURLs]
 }
@@ -202,7 +203,7 @@ async function mainProcess(url, openseaURLs, twitterURLs) {
     var twitterUsernames = null;
     var rootDomain = null;
 
-    console.log("Collecting profile handles and calling APIs...");
+    console.log("Calling APIs...");
     var mentaAction = "mentalog";
     // If front tab is Twitter/OpenSea profile grab basewebsite from it
     if (isTwitterURL(url)) {
@@ -216,7 +217,7 @@ async function mainProcess(url, openseaURLs, twitterURLs) {
             console.log("checkWhiteListFunction pass")
             mentaAction = "allowlist";
             const mentaBase = {'frontTab': url }
-            setMainResults(result,mentaBase, mentaAction)
+            setMainResults(result, mentaBase, mentaAction)
             return;
         }
         twitterData = await transformTwitterResponse(baseTwitter);
@@ -232,7 +233,7 @@ async function mainProcess(url, openseaURLs, twitterURLs) {
             mentaAction = "allowlist";
             console.log("checkWhiteListFunction pass")
             const mentaBase = {'frontTab': url }
-            setMainResults(result,mentaBase, mentaAction)
+            setMainResults(result, mentaBase, mentaAction)
             return;
         }
         openseaData = await transformOpenseaResponse(baseSlug);
@@ -250,7 +251,6 @@ async function mainProcess(url, openseaURLs, twitterURLs) {
         // if we have  base root domain check server
         var result = await checkWhiteListFunction(rootDomain, "root_domain");
         if(result != "NOTHING") {
-            console.log(result)
             mentaAction = "allowlist";
             console.log("checkWhiteListFunction pass ")
             const mentaBase = {'frontTab': url }
@@ -272,7 +272,7 @@ async function mainProcess(url, openseaURLs, twitterURLs) {
         // If front tab is Twitter profile then scrape the website link listed to get OpenSea slugs
         // If front tab is OpenSea profile then scrape the website link listed to get Twitter usernames
 
-        console.log("Using OpenSea and Twitter profile to scrape unique URL")
+        console.log("Using profiles for unique URL")
 
         if (openseaData && openseaData.external_url) {
             baseWebsite = openseaData.external_url;
@@ -280,7 +280,7 @@ async function mainProcess(url, openseaURLs, twitterURLs) {
             baseWebsite = twitterData.expanded_url;
         }
 
-        console.log("Scraping unique URL found: " + baseWebsite);
+        console.log("URL: " + baseWebsite);
 
         if (baseWebsite) {
 
@@ -298,7 +298,7 @@ async function mainProcess(url, openseaURLs, twitterURLs) {
                 twitterUsernames = getTwitterUsername(twitterURLsWeb); ///////
 
             } else {
-                console.log('No Twitter or OpenSea links found');
+                console.log('No Twitter or OpenSea profiles found');
             }
         }
 
@@ -330,11 +330,12 @@ async function mainProcess(url, openseaURLs, twitterURLs) {
         'rootDomain': rootDomain
     }
 
-    console.log("Data : ");
-    console.log('Base Website: ' + baseWebsite);
-    console.log('Base Twitter: ' + baseTwitter);
-    console.log('Base OpenSea: ' + baseSlug);
-    console.log(mentaObj);
+    // drop console print before updating on Chrome Store
+    // console.log("Data : ");
+    // console.log('Base Website: ' + baseWebsite);
+    // console.log('Base Twitter: ' + baseTwitter);
+    // console.log('Base OpenSea: ' + baseSlug);
+    // console.log(mentaObj);
 
     console.log("Call confidenceRating: ");
     const resultFinal = await confidenceRating(mentaObj);
@@ -344,8 +345,8 @@ async function mainProcess(url, openseaURLs, twitterURLs) {
 
 function setMainResults(result, mentaObj, mentaAction) {
     console.log("setMainResults: " + mentaAction);
-   var rate = null;
-   var frontTab = null;
+    var rate = null;
+    var frontTab = null;
     if(mentaAction == "mentalog") {
         setResults(result.rating, result.openseaData.floor_price);
         rate = mentaObj.rating.rate;
@@ -363,7 +364,7 @@ function setMainResults(result, mentaObj, mentaAction) {
         addMentaObjFunction(mentaBase)
        
     } else {
-        console.log(result.result);
+        // console.log(result.result);  // drop console print before updating on Chrome Store
         setResults(result.result)
        
         rate = result.result.rate

@@ -1,3 +1,5 @@
+// admin_queries is for quick testing of Firebase functions only.  
+// For production code use /functions.
 
 var axios = require('axios');
 
@@ -13,11 +15,10 @@ admin.initializeApp({
 
 var database = admin.database();
 
-//
-//
-//
+
 //Function URL (addMetaObj(us-central1)): https://us-central1-menta-check.cloudfunctions.net/addMetaObj
 //Function URL (addEventLog(us-central1)): https://us-central1-menta-check.cloudfunctions.net/addEventLog
+
 async function checkWhiteListFunction() {
      
     const checklistFuncUrl = "https://us-central1-menta-check.cloudfunctions.net/checkWhiteList";
@@ -34,6 +35,7 @@ async function checkWhiteListFunction() {
         console.log(error)
     }
 }
+
 async function checkWhitelist(root_domain, match) {
    
     var allowLRef = await database.ref("allowlist").once('value');
@@ -50,9 +52,20 @@ async function checkWhitelist(root_domain, match) {
         if(match == "base_twitter"){
                 mentaSnapshot = await database.ref('allowlist').orderByChild('base_twitter').equalTo(root_domain).once('value');
         }
-        if(mentaSnapshot) {
+        if(mentaSnapshot.val()) {
             const result = mentaSnapshot.val()
-            console.log("Result allowL " + result)
+            const ix = Object.keys(result)[0]
+            const temp = result[ix]
+            console.log("Result allowlist.")
+            console.log(temp)
+            // console.log("Twitter")
+            // console.log(temp['result']['twitterData'])
+            // console.log("OpenSea")
+            // console.log(temp['result']['openseaData'])
+            // console.log("Website")
+            // console.log(temp['result']['websiteData'])
+            // console.log("Rating:")
+            // console.log(temp['result']['rating'])
             return;
         }
     }
@@ -68,14 +81,14 @@ async function checkWhitelist(root_domain, match) {
         if(match == "base_twitter"){
                 mentaSnapshot = await database.ref('curated').orderByChild('base_twitter').equalTo(root_domain).once('value');
         }
-        if(mentaSnapshot) {
+        if(mentaSnapshot.val()) {
             const result = mentaSnapshot.val()
-            console.log("Result curated ")
+            console.log("Result curated.")
             console.log(result)
             return;
         }
     }
-   console.log("Result nothing " )
+   console.log("Result nothing." )
 }
 
 async function addCurated(rDomain, bSlug, bTwitter, rRate) {
@@ -98,6 +111,13 @@ async function addCurated(rDomain, bSlug, bTwitter, rRate) {
     console.log("done adding")
 }
 
-//checkWhiteListFunction()
-//checkWhitelist("crypto_coven", "base_twitter")
+// Check Firebase connection + checkWhiteList function 
+// checkWhiteListFunction()
+
+// Look for elements in allowlist
+// checkWhitelist("crypto_coven", "base_twitter")
+checkWhitelist("azuki", "base_slug")  
+// Azuki and other newer OpenSea profiles have a different twitter link. To Do: Update from API docs.
+
+// Add elements to curatedlist
 //addCurated("www.cryptocoven.xyz","cryptocoven","crypto_coven1","B")
