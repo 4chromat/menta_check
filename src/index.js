@@ -41,7 +41,7 @@ function setResults(dataObj, floorPrice) {
     let twitterMWeb = dataObj.is_twitter_link_same_website;
     let openSeaMWeb = dataObj.is_opensea_link_same_website;
 
-    //let floorPrice = dataObj.openseaData.floor_price?dataObj.openseaData.floor_price:'na';
+    // let floorPrice = dataObj.openseaData.floor_price ? dataObj.openseaData.floor_price:'na';
 
     var resultList = document.getElementById("resultList")
     resultList.innerHTML = '';
@@ -237,6 +237,13 @@ async function mainProcess(url, openseaURLs, twitterURLs) {
             return;
         }
         openseaData = await transformOpenseaResponse(baseSlug);
+
+        // Newer OpenSea profiles do not return twitter in API, only scrape
+        if (!openseaData.twitter_username) {
+            const temp = getTwitterUsername(twitterURLs);
+            openseaData.twitter_username = temp.length > 0 ? temp[0] : null;
+        }
+
         rootDomain = openseaData.external_url ? standarizeUrl(openseaData.external_url) : null;
 
     }

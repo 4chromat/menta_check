@@ -116,8 +116,7 @@ async function addCurated(rDomain, bSlug, bTwitter, rRate) {
 
 // Look for elements in allowlist
 // checkWhitelist("crypto_coven", "base_twitter")
-checkWhitelist("azuki", "base_slug")  
-// Azuki and other newer OpenSea profiles have a different twitter link. To Do: Update from API docs.
+
 
 // Add elements to curatedlist
-//addCurated("www.cryptocoven.xyz","cryptocoven","crypto_coven1","B")
+// addCurated("www.cryptocoven.xyz","cryptocoven","crypto_coven","B")
