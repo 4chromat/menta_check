@@ -179,7 +179,7 @@ function getOpenseaSlug(openseaURLs) {
     for (var urls in openseaURLs) {
         if (openseaURLs[urls]) {
             var a = openseaURLs[urls].split("/");
-            openseaSlugs.push(a[4])
+            openseaSlugs.push(a[4].split("?")[0])
         }
     }
     return openseaSlugs;
@@ -302,7 +302,7 @@ async function mainProcess(url, openseaURLs, twitterURLs) {
                 }
 
                 openseaSlugs = getOpenseaSlug(openseaURLsWeb);
-                twitterUsernames = getTwitterUsername(twitterURLsWeb); ///////
+                twitterUsernames = getTwitterUsername(twitterURLsWeb);
 
             } else {
                 console.log('No Twitter or OpenSea profiles found');
@@ -310,7 +310,6 @@ async function mainProcess(url, openseaURLs, twitterURLs) {
         }
 
         websiteData = transformWebsiteScrape(baseWebsite, twitterUsernames, openseaSlugs);
-
 
         if (twitterData === null) {
             baseTwitter = twitterUsernames ? twitterUsernames[0] : null;
@@ -338,7 +337,6 @@ async function mainProcess(url, openseaURLs, twitterURLs) {
     }
 
     // drop console print before updating on Chrome Store
-    // console.log("Data : ");
     // console.log('Base Website: ' + baseWebsite);
     // console.log('Base Twitter: ' + baseTwitter);
     // console.log('Base OpenSea: ' + baseSlug);

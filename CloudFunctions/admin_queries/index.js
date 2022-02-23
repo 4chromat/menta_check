@@ -1,4 +1,4 @@
-// admin_queries is for quick testing of Firebase functions only.  
+// admin_queries is for quick testing of Firebase functions only.
 // For production code use /functions.
 
 var axios = require('axios');
@@ -20,11 +20,11 @@ var database = admin.database();
 //Function URL (addEventLog(us-central1)): https://us-central1-menta-check.cloudfunctions.net/addEventLog
 
 async function checkWhiteListFunction() {
-     
+
     const checklistFuncUrl = "https://us-central1-menta-check.cloudfunctions.net/checkWhiteList";
     try {
         const res = await axios.post(checklistFuncUrl, { data: { root_domain: "crypto_coven", match:"base_twitter" } });
-        
+
         if (res.data) {
             console.log(res.data)
             return res.data;
@@ -37,11 +37,11 @@ async function checkWhiteListFunction() {
 }
 
 async function checkWhitelist(root_domain, match) {
-   
+
     var allowLRef = await database.ref("allowlist").once('value');
     var mentaSnapshot = null
     console.log(allowLRef.numChildren())
-    
+
     if(allowLRef.numChildren() > 0) {
         if(match == "root_domain") {
                 mentaSnapshot = await database.ref('allowlist').orderByChild('root_domain').equalTo(root_domain).once('value');
@@ -58,6 +58,7 @@ async function checkWhitelist(root_domain, match) {
             const temp = result[ix]
             console.log("Result allowlist.")
             console.log(temp)
+            // drop console print before updating on Chrome Store
             // console.log("Twitter")
             // console.log(temp['result']['twitterData'])
             // console.log("OpenSea")
@@ -69,7 +70,7 @@ async function checkWhitelist(root_domain, match) {
             return;
         }
     }
-  
+
     var curateRef = await database.ref("curated").once('value');
     if(curateRef.numChildren() > 0) {
         if(match == "root_domain") {
@@ -92,12 +93,12 @@ async function checkWhitelist(root_domain, match) {
 }
 
 async function addCurated(rDomain, bSlug, bTwitter, rRate) {
-   
+
     var triviaRef = await database.ref("curated").once('value');
-    
+
     let time = Date.now()
     const count = triviaRef.numChildren()? triviaRef.numChildren(): 0;
-   
+
     const info =  {
         id:count,
         timestamp:time,
@@ -111,7 +112,7 @@ async function addCurated(rDomain, bSlug, bTwitter, rRate) {
     console.log("done adding")
 }
 
-// Check Firebase connection + checkWhiteList function 
+// Check Firebase connection + checkWhiteList function
 // checkWhiteListFunction()
 
 // Look for elements in allowlist

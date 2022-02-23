@@ -152,10 +152,17 @@ async function transformTwitterResponse(username) {
         if (username) {
 
             const response = await getTwitterRequest(username);
-
             const data = response['data'][0];
 
-            data['expanded_url'] = data['entities']['url']['urls'][0]['expanded_url'];
+            // The website listed in Twitter could also be in the bio text
+            if ('url' in data['entities']) {
+                data['expanded_url'] = data['entities']['url']['urls'][0]['expanded_url'];
+            } else if ('urls' in data['entities']['description']) {
+                data['expanded_url'] = data['entities']['description']['urls'][0]['expanded_url'];
+            } else {
+                data['expanded_url'] = null;
+            }
+
             data['followers_count'] = data['public_metrics']['followers_count'];
             data['following_count'] = data['public_metrics']['following_count'];
             data['tweet_count'] = data['public_metrics']['tweet_count'];
@@ -219,7 +226,7 @@ async function transformOpenseaResponse(collectionName) {
 
         } else {
             return {
-                'status': 'missing baseOpensea'
+                'status': 'missing baseSlug'
             }
         }
 
@@ -280,34 +287,42 @@ async function confidenceFlags(mentaObj) {
     // linked sites often list http, no www, and /$, standarize before comparison
     const linkInOpensea = ('external_url' in mentaObj.openseaData) ? standarizeUrl(mentaObj['openseaData']['external_url']) : null;
     const linkInTwitter = ('expanded_url' in mentaObj.twitterData) ? standarizeUrl(mentaObj['twitterData']['expanded_url']) : null;
-    const linkInWebsite = standarizeUrl(mentaObj.baseWebsite);
+    const websiteLink = standarizeUrl(mentaObj.baseWebsite);
 
     // twitter handles are case insensitive
     const twitterUsername = mentaObj['twitterData']['username'] ? mentaObj['twitterData']['username'].toLowerCase() : null;
     const twitter_in_opensea = mentaObj['openseaData']['twitter_username'] ? mentaObj['openseaData']['twitter_username'].toLowerCase() : null;
-    const baseTwitterUsernameLower = mentaObj.baseTwitterUsername? mentaObj.baseTwitterUsername.toLowerCase() : null;
+    const baseTwitterUsernameLower = mentaObj.baseTwitterUsername ? mentaObj.baseTwitterUsername.toLowerCase() : null;
     const isTwitterVerified = mentaObj['twitterData']['verified'];
-   
+
     // OpenSea slugs are case sensitive
+    const slugInTwitter = twitterUsername ? mentaObj['twitterData']['expanded_url'].split("opensea.io/collection/")[1] : null;
     const isOpenseaSafelist = (mentaObj['openseaData']['safelist_request_status'] === 'verified') ||
         (mentaObj['openseaData']['safelist_request_status'] === 'approved');
 
     rating['is_twitter_found'] = ('id' in mentaObj.twitterData) ? true : false;
     rating['is_opensea_found'] = ('slug' in mentaObj.openseaData) ? true : false;
-    rating['is_twitter_found_in_opensea'] = ('twitter_username' in mentaObj.openseaData) ? true : false;
-
+    rating['is_twitter_found_in_opensea'] = ('twitter_username' in mentaObj.openseaData) && 
+        mentaObj.openseaData.twitter_username !== null ? true : false;
     rating['is_twitter_verified'] = isTwitterVerified === true;
     rating['is_opensea_safelist'] = isOpenseaSafelist
 
     rating['is_twitter_username_match_opensea_twitter'] = twitter_in_opensea === twitterUsername;
     rating['is_opensea_webpage_match_twitter_webpage'] = linkInOpensea === linkInTwitter;
 
-    rating['is_twitter_link_same_website'] = (linkInTwitter === linkInWebsite) && (linkInTwitter !== null);
-    rating['is_opensea_link_same_website'] = (linkInOpensea === linkInWebsite) && (linkInOpensea !== null);
+    // drop console print before updating on Chrome Store
+    // console.log("websiteLink: " + websiteLink)
+    // console.log("linkInTwitter: " + linkInTwitter)
+    // console.log("linkInOpensea: " + linkInOpensea)
+
+    rating['is_twitter_link_same_website'] = (linkInTwitter !== null) && 
+        ((linkInTwitter === websiteLink) || 
+        ((slugInTwitter !== null) && (slugInTwitter === mentaObj.baseSlug)));
+    rating['is_opensea_link_same_website'] = (linkInOpensea === websiteLink) && (linkInOpensea !== null);
     rating['is_twitter_link_linktree'] = linkInTwitter === "linktr.ee";
 
     rating['is_twitter_username_in_website'] = twitterUsername === baseTwitterUsernameLower;
-    rating['is_slug_in_website'] = mentaObj['openseaData']['slug'] === mentaObj.baseOpenseaSlug !== null;
+    rating['is_slug_in_website'] = mentaObj['openseaData']['slug'] === mentaObj.baseSlug !== null;
 
     rating['is_twitter_username_in_blocklist'] = false; // To do: create Blocklist
     rating['is_opensea_slug_in_blocklist'] = false; // To do: create Blocklist
@@ -431,6 +446,7 @@ function standarizeUrl(link) {
     link = link.replace(/^www\./, '');
     link = link.replace(/\/.*$/g, '');
     link = link.split(".").slice(-2).join('.')
+    link = link.split("?")[0]
     return link.toLowerCase()
 }
 
