@@ -2,7 +2,7 @@
     "manifest_version": 3,
     "name": "Menta Check",
     "description": "A Chrome extension that gives you a legitimacy rating for websites that host, or maliciously presume to host, NFT collections.",
-    "version": "0.2",
+    "version": "0.3",
     "host_permissions": [
         "*://*/*",
         "http://*/*",
