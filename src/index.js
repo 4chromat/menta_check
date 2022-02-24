@@ -135,6 +135,15 @@ function createListDiv(info, iconStatus) {
     return content
 }
 
+function rateEdgeCase(edgecaseHandle, edgecaseList, url) {
+    edgecaseList.push(edgecaseHandle);
+    var mentaAction = "edgecase";
+    var result = { 'result': { 'edgecaseList': edgecaseList, 'rate': 'EC' } }
+    const mentaBase = { 'frontTab': url }
+    setMainResults(result, mentaBase, mentaAction)
+    return;
+}
+
 //-----------------------------------------------
 // SCRAPPING FUNCTIONS
 //-----------------------------------------------
@@ -146,6 +155,7 @@ function getAllURLCurTab() {
     var urls = document.getElementsByTagName("a");
 
     console.log("Collecting URLs...");
+    // console.log(urls)
 
     for (var i = 0; i < urls.length; i++) {
 
@@ -264,16 +274,10 @@ async function mainProcess(url, openseaURLs, twitterURLs) {
         rootDomain = openseaData.external_url ? standarizeUrl(openseaData.external_url) : null;
 
     } else if (standarizeUrl(url) === 'opensea.io') {
-        // Only 'collection' pages are supported now, give a message for all other opensea
         uniqueUrl = false;
-        mentaAction = "edgecase";
-        edgecaseList.push('openseaNotInCollection');
-        var result = { 'result': { 'edgecaseList': edgecaseList, 'rate': 'EC' } }
-        const mentaBase = { 'frontTab': url }
-        setMainResults(result, mentaBase, mentaAction)
+        rateEdgeCase('openseaNotInCollection', edgecaseList, url);
         return;
     }
-
 
     // If front tab is a unique url scrape Twitter and OpenSea handles from it
     if (uniqueUrl) {
