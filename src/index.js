@@ -47,9 +47,7 @@ function setResults(dataObj, floorPrice) {
 
     // Check for known edge cases
     if ('edgecaseList' in dataObj) {
-        console.log(dataObj)
         if (dataObj.edgecaseList.includes('openseaNotInCollection')) {
-         console.log('eee')
          var mssg = "During Beta, Menta only scores 'collection' pages in OpenSea."
         }
         resultList.appendChild(createListDiv(mssg, ""));
