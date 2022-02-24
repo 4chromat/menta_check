@@ -295,7 +295,8 @@ async function confidenceFlags(mentaObj) {
     const isTwitterVerified = mentaObj['twitterData']['verified'];
 
     // OpenSea slugs are case sensitive
-    const slugInTwitter = twitterUsername ? mentaObj['twitterData']['expanded_url'].split("opensea.io/collection/")[1] : null;
+    const slugInTwitter = twitterUsername && mentaObj['twitterData']['expanded_url'] ? 
+        mentaObj['twitterData']['expanded_url'].split("opensea.io/collection/")[1] : null;
     const isOpenseaSafelist = (mentaObj['openseaData']['safelist_request_status'] === 'verified') ||
         (mentaObj['openseaData']['safelist_request_status'] === 'approved');
 
