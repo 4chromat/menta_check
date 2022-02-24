@@ -3,7 +3,7 @@ import { transformTwitterResponse, transformOpenseaResponse, transformWebsiteScr
 import { checkWhiteListFunction, addMentaObjFunction, addLogFunction } from './cloudFunCalls'
 
 
-(async function() {
+(async function () {
     console.log("Clicked extension");
     let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
@@ -27,7 +27,34 @@ import { checkWhiteListFunction, addMentaObjFunction, addLogFunction } from './c
 
 function setResults(dataObj, floorPrice) {
 
+    var resultList = document.getElementById("resultList")
+    resultList.innerHTML = '';
+    resultList.appendChild(createListDiv("", ""));
+
     let rate = dataObj.rate;
+
+    // setting img in logo:
+    var logo = document.getElementById("logoImg")
+    if (rate == 'A+') { logo.src = "/img/logo_aa.svg" }
+    if (rate == 'A') { logo.src = "/img/logo_a.svg" }
+    if (rate == 'B') { logo.src = "/img/logo_b.svg" }
+    if (rate == 'C') { logo.src = "/img/logo_c.svg" }
+    if (rate == 'D') { logo.src = "/img/logo_d.svg" }
+    if (rate == 'F') { logo.src = "/img/logo_f.svg" }
+    if (rate == 'NA') { logo.src = "/img/logo_q.svg" }
+    if (rate == 'EC') { logo.src = "/img/logo_q.svg" }
+
+
+    // Check for known edge cases
+    if ('edgecaseList' in dataObj) {
+        console.log(dataObj)
+        if (dataObj.edgecaseList.includes('openseaNotInCollection')) {
+         console.log('eee')
+         var mssg = "During Beta, Menta only scores 'collection' pages in OpenSea."
+        }
+        resultList.appendChild(createListDiv(mssg, ""));
+        return;
+    }
 
     let twitterF = dataObj.is_twitter_found;
     let openseaF = dataObj.is_opensea_found;
@@ -41,21 +68,6 @@ function setResults(dataObj, floorPrice) {
     let twitterMWeb = dataObj.is_twitter_link_same_website;
     let openSeaMWeb = dataObj.is_opensea_link_same_website;
 
-    // let floorPrice = dataObj.openseaData.floor_price ? dataObj.openseaData.floor_price:'na';
-
-    var resultList = document.getElementById("resultList")
-    resultList.innerHTML = '';
-    resultList.appendChild(createListDiv("", ""));
-
-    // setting img in logo:
-    var logo = document.getElementById("logoImg")
-    if (rate == 'A+') { logo.src = "/img/logo_aa.svg" }
-    if (rate == 'A') { logo.src = "/img/logo_a.svg" }
-    if (rate == 'B') { logo.src = "/img/logo_b.svg" }
-    if (rate == 'C') { logo.src = "/img/logo_c.svg" }
-    if (rate == 'D') { logo.src = "/img/logo_d.svg" }
-    if (rate == 'F') { logo.src = "/img/logo_f.svg" }
-    if (rate == 'NA') { logo.src = "/img/logo_q.svg" }
 
     // setting twitter data
     if (twitterV)
@@ -100,6 +112,8 @@ function setResults(dataObj, floorPrice) {
     // setting floor price if found
     if (floorPrice)
         resultList.appendChild(createListDiv(`Floor price: ${floorPrice}`, "good"));
+
+    return;
 }
 
 function createListDiv(info, iconStatus) {
@@ -108,13 +122,15 @@ function createListDiv(info, iconStatus) {
     if (info != "") {
         var text = document.createElement("p");
         var span = document.createElement("span");
-        var icon = "icon-good"
-        if (iconStatus == "bad") { icon = "icon-bad"; }
-        if (iconStatus == "ver") { icon = "icon-ver"; }
-        if (iconStatus == "na") { icon = "icon-na"; }
-        if (iconStatus == "question") { icon = "icon-question"; }
-        span.className = "icon-span " + icon;
-        content.appendChild(span);
+        if (iconStatus != "") {
+            var icon = "icon-good"
+            if (iconStatus == "bad") { icon = "icon-bad"; }
+            if (iconStatus == "ver") { icon = "icon-ver"; }
+            if (iconStatus == "na") { icon = "icon-na"; }
+            if (iconStatus == "question") { icon = "icon-question"; }
+            span.className = "icon-span " + icon;
+            content.appendChild(span);
+        }
         text.textContent = info;
         content.appendChild(text);
     }
@@ -202,6 +218,7 @@ async function mainProcess(url, openseaURLs, twitterURLs) {
     var openseaSlugs = null;
     var twitterUsernames = null;
     var rootDomain = null;
+    var edgecaseList = [];
 
     console.log("Calling APIs...");
     var mentaAction = "mentalog";
@@ -212,11 +229,12 @@ async function mainProcess(url, openseaURLs, twitterURLs) {
         baseTwitter = getTwitterUsername([url])[0];
         // SERVER FUNC
         // if we have  base twitter check server
+        // result is an object that holds 'ratings' under 'results.result'
         var result = await checkWhiteListFunction(baseTwitter, "base_twitter");
-        if(result != "NOTHING") {
+        if (result != "NOTHING") {
             console.log("checkWhiteListFunction pass")
             mentaAction = "allowlist";
-            const mentaBase = {'frontTab': url }
+            const mentaBase = { 'frontTab': url }
             setMainResults(result, mentaBase, mentaAction)
             return;
         }
@@ -224,15 +242,16 @@ async function mainProcess(url, openseaURLs, twitterURLs) {
         rootDomain = twitterData.expanded_url ? standarizeUrl(twitterData.expanded_url) : null;
 
     } else if (isOpenseaURL(url)) {
+
         uniqueUrl = false;
         baseSlug = getOpenseaSlug([url])[0];
         // SERVER FUNC
         // if we have  base openSea check server
         var result = await checkWhiteListFunction(baseSlug, "base_slug");
-        if(result != "NOTHING") {
+        if (result != "NOTHING") {
             mentaAction = "allowlist";
             console.log("checkWhiteListFunction pass")
-            const mentaBase = {'frontTab': url }
+            const mentaBase = { 'frontTab': url }
             setMainResults(result, mentaBase, mentaAction)
             return;
         }
@@ -246,21 +265,31 @@ async function mainProcess(url, openseaURLs, twitterURLs) {
 
         rootDomain = openseaData.external_url ? standarizeUrl(openseaData.external_url) : null;
 
+    } else if (standarizeUrl(url) === 'opensea.io') {
+        // Only 'collection' pages are supported now, give a message for all other opensea
+        uniqueUrl = false;
+        mentaAction = "edgecase";
+        edgecaseList.push('openseaNotInCollection');
+        var result = { 'result': { 'edgecaseList': edgecaseList, 'rate': 'EC' } }
+        const mentaBase = { 'frontTab': url }
+        setMainResults(result, mentaBase, mentaAction)
+        return;
     }
+
 
     // If front tab is a unique url scrape Twitter and OpenSea handles from it
     if (uniqueUrl) {
 
         baseWebsite = url;
         rootDomain = baseWebsite ? standarizeUrl(baseWebsite) : null;
-        
+
         // SERVER FUNC
         // if we have  base root domain check server
         var result = await checkWhiteListFunction(rootDomain, "root_domain");
-        if(result != "NOTHING") {
+        if (result != "NOTHING") {
             mentaAction = "allowlist";
             console.log("checkWhiteListFunction pass ")
-            const mentaBase = {'frontTab': url }
+            const mentaBase = { 'frontTab': url }
             setMainResults(result, mentaBase, mentaAction)
             return;
         }
@@ -345,14 +374,16 @@ async function mainProcess(url, openseaURLs, twitterURLs) {
     console.log("Call confidenceRating: ");
     const resultFinal = await confidenceRating(mentaObj);
     setMainResults(resultFinal, mentaObj, mentaAction)
-   
-} 
+
+}
 
 function setMainResults(result, mentaObj, mentaAction) {
     console.log("setMainResults: " + mentaAction);
     var rate = null;
     var frontTab = null;
-    if(mentaAction == "mentalog") {
+
+    if (mentaAction == "mentalog") {
+
         setResults(result.rating, result.openseaData.floor_price);
         rate = mentaObj.rating.rate;
         frontTab = mentaObj.frontTab;
@@ -362,24 +393,24 @@ function setMainResults(result, mentaObj, mentaAction) {
             'baseSlug': mentaObj.baseSlug,
             'baseWebsite': mentaObj.baseWebsite,
             'rootDomain': mentaObj.rootDomain,
-            'rate':rate,
+            'rate': rate,
             'result': result
         }
-    
+
         addMentaObjFunction(mentaBase)
-       
+
     } else {
         // console.log(result.result);  // drop console print before updating on Chrome Store
         setResults(result.result)
-       
         rate = result.result.rate
         frontTab = mentaObj.frontTab;
     }
+
     const bInfo = {
-        front_tab:frontTab,
+        front_tab: frontTab,
         action: mentaAction,
-        rate:rate
+        rate: rate
     }
-      
+
     addLogFunction(bInfo)
 }

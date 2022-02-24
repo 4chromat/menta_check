@@ -96,7 +96,6 @@ const openseaAttributesArray = [
     'created_date',
     'description',
     'external_url',
-    'external_url',
     'instagram_username',
     'is_subject_to_whitelist',
     'name',
@@ -302,7 +301,7 @@ async function confidenceFlags(mentaObj) {
 
     rating['is_twitter_found'] = ('id' in mentaObj.twitterData) ? true : false;
     rating['is_opensea_found'] = ('slug' in mentaObj.openseaData) ? true : false;
-    rating['is_twitter_found_in_opensea'] = ('twitter_username' in mentaObj.openseaData) && 
+    rating['is_twitter_found_in_opensea'] = ('twitter_username' in mentaObj.openseaData) &&
         mentaObj.openseaData.twitter_username !== null ? true : false;
     rating['is_twitter_verified'] = isTwitterVerified === true;
     rating['is_opensea_safelist'] = isOpenseaSafelist
@@ -315,9 +314,9 @@ async function confidenceFlags(mentaObj) {
     // console.log("linkInTwitter: " + linkInTwitter)
     // console.log("linkInOpensea: " + linkInOpensea)
 
-    rating['is_twitter_link_same_website'] = (linkInTwitter !== null) && 
-        ((linkInTwitter === websiteLink) || 
-        ((slugInTwitter !== null) && (slugInTwitter === mentaObj.baseSlug)));
+    rating['is_twitter_link_same_website'] = (linkInTwitter !== null) &&
+        ((linkInTwitter === websiteLink) ||
+            ((slugInTwitter !== null) && (slugInTwitter === mentaObj.baseSlug)));
     rating['is_opensea_link_same_website'] = (linkInOpensea === websiteLink) && (linkInOpensea !== null);
     rating['is_twitter_link_linktree'] = linkInTwitter === "linktr.ee";
 
@@ -420,13 +419,8 @@ async function confidenceRating(mentaObj) {
 
     }
 
-    console.log('Rating:');
-    console.log(rating['rate']);
     // console.log(rating);  // drop console print before updating on Chrome Store
-
     mentaObj['rating'] = rating;
-
-
     mentaObj['timestamp'] = Date.now();
     mentaObj['runTimeMSecs'] = `${Math.floor((Date.now() - start))}`;
 
