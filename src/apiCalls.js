@@ -302,6 +302,7 @@ async function confidenceFlags(mentaObj, edgecaseList) {
     const isOpenseaSafelist = (mentaObj['openseaData']['safelist_request_status'] === 'verified') ||
         (mentaObj['openseaData']['safelist_request_status'] === 'approved');
 
+    rating['is_website_found'] = ('url' in mentaObj.websiteData) ? true : false;
     rating['is_twitter_found'] = ('id' in mentaObj.twitterData) ? true : false;
     rating['is_opensea_found'] = ('slug' in mentaObj.openseaData) ? true : false;
     rating['is_twitter_found_in_opensea'] = ('twitter_username' in mentaObj.openseaData) &&

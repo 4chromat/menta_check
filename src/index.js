@@ -45,6 +45,7 @@ function setResults(dataObj, floorPrice) {
     if (rate == 'NA') { logo.src = "/img/logo_q.svg" }
     if (rate == 'EC') { logo.src = "/img/logo_q.svg" }
 
+    let websiteF = dataObj.is_website_found;
     let twitterF = dataObj.is_twitter_found;
     let openseaF = dataObj.is_opensea_found;
     let twitterFOpensea = dataObj.is_twitter_found_in_opensea;
@@ -78,6 +79,12 @@ function setResults(dataObj, floorPrice) {
             return;
         }
     }
+
+    // setting website data
+    if (websiteF)
+        resultList.appendChild(createListDiv("Website found", "good"))
+    else
+        resultList.appendChild(createListDiv("Website missing", "na"))
 
     // setting twitter data
     if (twitterV)
