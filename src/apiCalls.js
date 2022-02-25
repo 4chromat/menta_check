@@ -279,9 +279,11 @@ function transformWebsiteScrape(baseWebsite, twitterUsernames, openseaSlugs) {
 
 
 //  Annotate confidence flags
-async function confidenceFlags(mentaObj) {
+async function confidenceFlags(mentaObj, edgecaseList) {
 
     const rating = {};
+
+    rating['edgecaseList'] = edgecaseList;
 
     // linked sites often list http, no www, and /$, standarize before comparison
     const linkInOpensea = ('external_url' in mentaObj.openseaData) ? standarizeUrl(mentaObj['openseaData']['external_url']) : null;
@@ -334,10 +336,10 @@ async function confidenceFlags(mentaObj) {
 
 //  Assign A-F rating
 // To do: add recommended sites in rating and stats validation
-async function confidenceRating(mentaObj) {
+async function confidenceRating(mentaObj, edgecaseList) {
 
     console.log("Assigning confidence flags...")
-    const rating = await confidenceFlags(mentaObj);
+    const rating = await confidenceFlags(mentaObj, edgecaseList);
 
     console.log("Computing confidence rating...")
 

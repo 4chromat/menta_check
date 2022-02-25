@@ -13,7 +13,8 @@ import { checkWhiteListFunction, addMentaObjFunction, addLogFunction } from './c
     }, (injectionResults) => {
         let openseaURLs = injectionResults[0].result[0];
         let twitterURLs = injectionResults[0].result[1];
-        mainProcess(tab.url, openseaURLs, twitterURLs);
+        let edgecaseList = injectionResults[0].result[2];
+        mainProcess(tab.url, openseaURLs, twitterURLs, edgecaseList);
     });
 })();
 
@@ -43,17 +44,7 @@ function setResults(dataObj, floorPrice) {
     if (rate == 'F') { logo.src = "/img/logo_f.svg" }
     if (rate == 'NA') { logo.src = "/img/logo_q.svg" }
     if (rate == 'EC') { logo.src = "/img/logo_q.svg" }
-
-
-    // Check for known edge cases
-    if ('edgecaseList' in dataObj) {
-        if (dataObj.edgecaseList.includes('openseaNotInCollection')) {
-         var mssg = "During Beta, Menta only scores 'collection' pages in OpenSea."
-        }
-        resultList.appendChild(createListDiv(mssg, ""));
-        return;
-    }
-
+    
     let twitterF = dataObj.is_twitter_found;
     let openseaF = dataObj.is_opensea_found;
     let twitterFOpensea = dataObj.is_twitter_found_in_opensea;
@@ -66,6 +57,23 @@ function setResults(dataObj, floorPrice) {
     let twitterMWeb = dataObj.is_twitter_link_same_website;
     let openSeaMWeb = dataObj.is_opensea_link_same_website;
 
+
+    // Check for known edge cases. TO do: move to confidenceRating()
+    if ('edgecaseList' in dataObj) {
+
+        if (dataObj.edgecaseList.includes('openseaNotInCollection')) {
+            var mssg = "During Beta, Menta only scores 'collection' pages in OpenSea."
+        }
+        if (!openseaF && dataObj.edgecaseList.includes('solanaLinkFound')) {
+            // To do: log this as edgecase, rn it goes to mentalog rate C
+            var mssg = "During Beta, Menta does not support Solana collections."
+        }
+
+        rate = 'EC';
+        logo.src = "/img/logo_q.svg"
+        resultList.appendChild(createListDiv(mssg, ""));
+        return;
+    }
 
     // setting twitter data
     if (twitterV)
@@ -152,10 +160,11 @@ function rateEdgeCase(edgecaseHandle, edgecaseList, url) {
 function getAllURLCurTab() {
     var openseaURLs = [];
     var twitterURLs = [];
+    var edgecaseList = [];
+
     var urls = document.getElementsByTagName("a");
 
     console.log("Collecting URLs...");
-    // console.log(urls)
 
     for (var i = 0; i < urls.length; i++) {
 
@@ -168,6 +177,10 @@ function getAllURLCurTab() {
         } else if (cur.indexOf("https://www.twitter.com/") > -1 || cur.indexOf("https://twitter.com/") > -1) {
             twitterURLs.push(cur);
         }
+
+        if (cur.indexOf("solana") > -1) {
+            edgecaseList.push('solanaLinkFound');
+        }
     }
 
     // drop console print before updating on Chrome Store
@@ -176,7 +189,7 @@ function getAllURLCurTab() {
     // console.log("Twitter URLs:");
     // console.log(twitterURLs);
 
-    return [openseaURLs, twitterURLs]
+    return [openseaURLs, twitterURLs, edgecaseList]
 }
 
 function isTwitterURL(url) {
@@ -214,7 +227,7 @@ function getOpenseaSlug(openseaURLs) {
 //-----------------------------------------------
 
 // Main function grabs slugs and runs API for restuls
-async function mainProcess(url, openseaURLs, twitterURLs) {
+async function mainProcess(url, openseaURLs, twitterURLs, edgecaseList) {
 
     var uniqueUrl = true;
     var baseWebsite = null;
@@ -226,7 +239,6 @@ async function mainProcess(url, openseaURLs, twitterURLs) {
     var openseaSlugs = null;
     var twitterUsernames = null;
     var rootDomain = null;
-    var edgecaseList = [];
 
     console.log("Calling APIs...");
     var mentaAction = "mentalog";
@@ -374,7 +386,7 @@ async function mainProcess(url, openseaURLs, twitterURLs) {
     // console.log(mentaObj);
 
     console.log("Call confidenceRating: ");
-    const resultFinal = await confidenceRating(mentaObj);
+    const resultFinal = await confidenceRating(mentaObj, edgecaseList);
     setMainResults(resultFinal, mentaObj, mentaAction)
 
 }
