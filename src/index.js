@@ -44,7 +44,7 @@ function setResults(dataObj, floorPrice) {
     if (rate == 'F') { logo.src = "/img/logo_f.svg" }
     if (rate == 'NA') { logo.src = "/img/logo_q.svg" }
     if (rate == 'EC') { logo.src = "/img/logo_q.svg" }
-    
+
     let twitterF = dataObj.is_twitter_found;
     let openseaF = dataObj.is_opensea_found;
     let twitterFOpensea = dataObj.is_twitter_found_in_opensea;
@@ -59,20 +59,24 @@ function setResults(dataObj, floorPrice) {
 
 
     // Check for known edge cases. TO do: move to confidenceRating()
-    if ('edgecaseList' in dataObj) {
+    if ('edgecaseList' in dataObj && dataObj.edgecaseList.length > 0) {
+
+        var mssg = "";
 
         if (dataObj.edgecaseList.includes('openseaNotInCollection')) {
-            var mssg = "During Beta, Menta only scores 'collection' pages in OpenSea."
-        }
-        if (!openseaF && dataObj.edgecaseList.includes('solanaLinkFound')) {
-            // To do: log this as edgecase, rn it goes to mentalog rate C
-            var mssg = "During Beta, Menta does not support Solana collections."
+            mssg = "During Beta, Menta only scores 'collection' pages in OpenSea."
         }
 
-        rate = 'EC';
-        logo.src = "/img/logo_q.svg"
-        resultList.appendChild(createListDiv(mssg, ""));
-        return;
+        if (!openseaF && dataObj.edgecaseList.includes('solanaLinkFound')) {
+            // To do: log this as edgecase, rn it goes to mentalog rate C
+            mssg = "During Beta, Menta does not support Solana collections."
+        }
+
+        if (mssg !== "") {
+            logo.src = "/img/logo_q.svg"
+            resultList.appendChild(createListDiv(mssg, ""));
+            return;
+        }
     }
 
     // setting twitter data
