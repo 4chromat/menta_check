@@ -119,7 +119,7 @@ function setResults(dataObj, floorPrice) {
     // if in website url
     if (openSeaMWeb)
         resultList.appendChild(createListDiv("OpenSea-Website match", "good"));
-    else if (openseaF)
+    else if (openseaF && websiteF)
         resultList.appendChild(createListDiv("OpenSea-Website misatch", "bad"));
 
     // setting twitter data
