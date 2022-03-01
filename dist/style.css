@@ -88,6 +88,7 @@ button:active {
 .icon-span {
     width: 20px;
     height: 20px;
+    margin-right: 10px;
     display: inline-block;
     background-size: cover;
 }

@@ -26,24 +26,13 @@ import { checkWhiteListFunction, addMentaObjFunction, addLogFunction } from './c
 // dataObj: result coming from api
 // uniqueUrl: boolean if tab url is not opensea or twitter page
 
-function setResults(dataObj, floorPrice) {
+function setResults(dataObj, mentaAction) {
 
     var resultList = document.getElementById("resultList")
     resultList.innerHTML = '';
-    resultList.appendChild(createListDiv("", ""));
+    resultList.appendChild(createListDiv("", "", ""));
 
     let rate = dataObj.rate;
-
-    // setting img in logo:
-    var logo = document.getElementById("logoImg")
-    if (rate == 'A+') { logo.src = "/img/logo_aa.svg" }
-    if (rate == 'A') { logo.src = "/img/logo_a.svg" }
-    if (rate == 'B') { logo.src = "/img/logo_b.svg" }
-    if (rate == 'C') { logo.src = "/img/logo_c.svg" }
-    if (rate == 'D') { logo.src = "/img/logo_d.svg" }
-    if (rate == 'F') { logo.src = "/img/logo_f.svg" }
-    if (rate == 'NA') { logo.src = "/img/logo_q.svg" }
-    if (rate == 'EC') { logo.src = "/img/logo_q.svg" }
 
     let websiteF = dataObj.is_website_found;
     let twitterF = dataObj.is_twitter_found;
@@ -57,6 +46,21 @@ function setResults(dataObj, floorPrice) {
 
     let twitterMWeb = dataObj.is_twitter_link_same_website;
     let openSeaMWeb = dataObj.is_opensea_link_same_website;
+
+    let linkW = dataObj.baseWebsite;
+    let linkT = "https://www.twitter.com/" + dataObj.baseTwitter;
+    let linkO = "https://www.opensea.io/collection/" + dataObj.baseSlug;
+
+    // setting img in logo:
+    var logo = document.getElementById("logoImg")
+    if (rate == 'A+') { logo.src = "/img/logo_aa.svg" }
+    if (rate == 'A') { logo.src = "/img/logo_a.svg" }
+    if (rate == 'B') { logo.src = "/img/logo_b.svg" }
+    if (rate == 'C') { logo.src = "/img/logo_c.svg" }
+    if (rate == 'D') { logo.src = "/img/logo_d.svg" }
+    if (rate == 'F') { logo.src = "/img/logo_f.svg" }
+    if (rate == 'NA') { logo.src = "/img/logo_q.svg" }
+    if (rate == 'EC') { logo.src = "/img/logo_q.svg" }
 
 
     // Check for known edge cases. TO do: move to confidenceRating()
@@ -75,32 +79,32 @@ function setResults(dataObj, floorPrice) {
 
         if (mssg !== "") {
             logo.src = "/img/logo_q.svg"
-            resultList.appendChild(createListDiv(mssg, ""));
+            resultList.appendChild(createListDiv(mssg, "", ""));
             return;
         }
     }
 
     // setting website data
     if (websiteF)
-        resultList.appendChild(createListDiv("Website found", "good"))
+        resultList.appendChild(createListDiv("Website found", "good", linkW))
     else
-        resultList.appendChild(createListDiv("Website missing", "na"))
+        resultList.appendChild(createListDiv("Website missing", "na", ""))
 
     // setting twitter data
     if (twitterV)
-        resultList.appendChild(createListDiv("Twitter profile verified", "ver"));
+        resultList.appendChild(createListDiv("Twitter profile verified", "ver", linkT));
     else if (twitterF)
-        resultList.appendChild(createListDiv("Twitter profile found", "good"))
+        resultList.appendChild(createListDiv("Twitter profile found", "good", linkT))
     else
-        resultList.appendChild(createListDiv("Twitter profile missing", "na"))
+        resultList.appendChild(createListDiv("Twitter profile missing", "na", ""))
 
     // settting openSea data
     if (openSeaV)
-        resultList.appendChild(createListDiv("OpenSea profile verified", "ver"))
+        resultList.appendChild(createListDiv("OpenSea profile verified", "ver", linkO))
     else if (openseaF)
-        resultList.appendChild(createListDiv("OpenSea profile found", "good"))
+        resultList.appendChild(createListDiv("OpenSea profile found", "good", linkO))
     else
-        resultList.appendChild(createListDiv("OpenSea profile missing", "na"))
+        resultList.appendChild(createListDiv("OpenSea profile missing", "na", ""))
 
     // setting combined data with Open Sea
     if (openseaF && twitterF) {
@@ -126,19 +130,20 @@ function setResults(dataObj, floorPrice) {
     if (!openseaF)
         resultList.appendChild(createListDiv("Can you mint here?", "question"));
 
-    // setting floor price if found
-    if (floorPrice)
-        resultList.appendChild(createListDiv(`Floor price: ${floorPrice}`, "good"));
+    // setting floor price if found. TO DO:  Refresh floor price when from allowlist
+    if (mentaAction == 'mentalog' && dataObj.floorPrice)
+        resultList.appendChild(createListDiv(`Floor price: ${dataObj.floorPrice}`, "good"));
 
     return;
 }
 
-function createListDiv(info, iconStatus) {
+function createListDiv(info, iconStatus, link) {
     var content = document.createElement("li");
     content.className = "border--bottom info_rating-li";
     if (info != "") {
-        var text = document.createElement("p");
+
         var span = document.createElement("span");
+
         if (iconStatus != "") {
             var icon = "icon-good"
             if (iconStatus == "bad") { icon = "icon-bad"; }
@@ -148,8 +153,19 @@ function createListDiv(info, iconStatus) {
             span.className = "icon-span " + icon;
             content.appendChild(span);
         }
-        text.textContent = info;
-        content.appendChild(text);
+
+        if (link) {
+            var a = document.createElement('a');
+            var linkText = document.createTextNode(info);
+            a.appendChild(linkText);
+            a.title = info;
+            a.href = link;
+            content.appendChild(a);
+        } else {
+            var text = document.createElement("p");
+            text.textContent = info;
+            content.appendChild(text);
+        }
     }
     return content
 }
@@ -409,7 +425,7 @@ function setMainResults(result, mentaObj, mentaAction) {
 
     if (mentaAction == "mentalog") {
 
-        setResults(result.rating, result.openseaData.floor_price);
+        setResults(result.rating, mentaAction);
         rate = mentaObj.rating.rate;
         frontTab = mentaObj.frontTab;
         const mentaBase = {
@@ -426,7 +442,7 @@ function setMainResults(result, mentaObj, mentaAction) {
 
     } else {
         // console.log(result.result);  // drop console print before updating on Chrome Store
-        setResults(result.result)
+        setResults(result.result, mentaAction)
         rate = result.result.rate
         frontTab = mentaObj.frontTab;
     }

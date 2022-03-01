@@ -283,6 +283,13 @@ async function confidenceFlags(mentaObj, edgecaseList) {
 
     const rating = {};
 
+    rating['baseWebsite'] = mentaObj.baseWebsite;
+    rating['baseTwitter'] = mentaObj.baseTwitter;
+    rating['baseSlug'] = mentaObj.baseSlug;
+
+    rating['floorPrice'] = mentaObj.openseaData && 'floor_price' in mentaObj.openseaData ? 
+        mentaObj.openseaData.floor_price : null;
+
     rating['edgecaseList'] = edgecaseList;
 
     // linked sites often list http, no www, and /$, standarize before comparison
@@ -292,8 +299,8 @@ async function confidenceFlags(mentaObj, edgecaseList) {
 
     // twitter handles are case insensitive
     const twitterUsername = mentaObj['twitterData']['username'] ? mentaObj['twitterData']['username'].toLowerCase() : null;
-    const twitter_in_opensea = mentaObj['openseaData']['twitter_username'] ? mentaObj['openseaData']['twitter_username'].toLowerCase() : null;
-    const baseTwitterUsernameLower = mentaObj.baseTwitterUsername ? mentaObj.baseTwitterUsername.toLowerCase() : null;
+    const twitterInOpensea = mentaObj['openseaData']['twitter_username'] ? mentaObj['openseaData']['twitter_username'].toLowerCase() : null;
+    const baseTwitterLower = mentaObj.baseTwitter ? mentaObj.baseTwitter.toLowerCase() : null;
     const isTwitterVerified = mentaObj['twitterData']['verified'];
 
     // OpenSea slugs are case sensitive
@@ -310,7 +317,7 @@ async function confidenceFlags(mentaObj, edgecaseList) {
     rating['is_twitter_verified'] = isTwitterVerified === true;
     rating['is_opensea_safelist'] = isOpenseaSafelist
 
-    rating['is_twitter_username_match_opensea_twitter'] = twitter_in_opensea === twitterUsername;
+    rating['is_twitter_username_match_opensea_twitter'] = twitterInOpensea === twitterUsername;
     rating['is_opensea_webpage_match_twitter_webpage'] = linkInOpensea === linkInTwitter;
 
     // drop console print before updating on Chrome Store
@@ -324,7 +331,7 @@ async function confidenceFlags(mentaObj, edgecaseList) {
     rating['is_opensea_link_same_website'] = (linkInOpensea === websiteLink) && (linkInOpensea !== null);
     rating['is_twitter_link_linktree'] = linkInTwitter === "linktr.ee";
 
-    rating['is_twitter_username_in_website'] = twitterUsername === baseTwitterUsernameLower;
+    rating['is_twitter_username_in_website'] = twitterUsername === baseTwitterLower;
     rating['is_slug_in_website'] = mentaObj['openseaData']['slug'] === mentaObj.baseSlug !== null;
 
     rating['is_twitter_username_in_blocklist'] = false; // To do: create Blocklist
