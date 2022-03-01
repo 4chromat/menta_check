@@ -1,7 +1,8 @@
-import { confidenceRating, getWebpageUrls, standarizeUrl } from './apiCalls.js';
+import { getWebpageUrls } from './apiCalls.js';
 import { transformTwitterResponse, transformOpenseaResponse, transformWebsiteScrape } from './apiCalls.js';
 import { checkWhiteListFunction } from './cloudFunCalls'
 import { setMainResults } from './setResults.js';
+import { confidenceRating, standarizeUrl } from './confidenceRating.js';
 
 (async function () {
     console.log("Clicked extension");
@@ -117,6 +118,7 @@ async function mainProcess(url, openseaURLs, twitterURLs, edgecaseList) {
     var openseaSlugs = null;
     var twitterUsernames = null;
     var rootDomain = null;
+    const start = Date.now();
 
     console.log("Calling APIs...");
     var mentaAction = "mentalog";
@@ -265,6 +267,9 @@ async function mainProcess(url, openseaURLs, twitterURLs, edgecaseList) {
 
     console.log("Call confidenceRating: ");
     const resultFinal = await confidenceRating(mentaObj, edgecaseList);
+
+    mentaObj['runTimeMSecs'] = `${Math.floor((Date.now() - start))}`;
+
     setMainResults(resultFinal, mentaObj, mentaAction)
 
 }

@@ -7,7 +7,7 @@ function getBearerToken() {
 
 function getOpenseaKey() {
     const openseaKey = process.env.OPENSEA_API_KEY;
-   return openseaKey
+    return openseaKey
 
 }
-export {getBearerToken, getOpenseaKey}
+export { getBearerToken, getOpenseaKey }
