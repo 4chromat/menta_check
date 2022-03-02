@@ -139,7 +139,7 @@ function createListDiv(info, iconStatus, link) {
             var a = document.createElement('a');
             var linkText = document.createTextNode(info);
             a.appendChild(linkText);
-            a.title = info;
+            a.title = link;
             a.href = link;
             content.appendChild(a);
         } else {
