@@ -165,6 +165,8 @@ function setMainResults(result, mentaObj, mentaAction) {
         setResults(result.rating, mentaAction);
         rate = mentaObj.rating.rate;
         frontTab = mentaObj.frontTab;
+
+        // mentaBase is what is logged in firebase
         const mentaBase = {
             'frontTab': frontTab,
             'baseTwitter': mentaObj.baseTwitter,

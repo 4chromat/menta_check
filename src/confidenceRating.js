@@ -10,6 +10,7 @@ async function confidenceFlags(mentaObj, edgecaseList) {
     rating['baseWebsite'] = mentaObj.baseWebsite;
     rating['baseTwitter'] = mentaObj.baseTwitter;
     rating['baseSlug'] = mentaObj.baseSlug;
+    rating['frontTabCategory'] = mentaObj.frontTabCategory;
 
     rating['floorPrice'] = mentaObj.openseaData && 'floor_price' in mentaObj.openseaData ?
         mentaObj.openseaData.floor_price : null;
@@ -102,6 +103,13 @@ async function confidenceRating(mentaObj, edgecaseList) {
             rating['is_opensea_link_same_website'] &&
             rating['is_twitter_found'] &&
             rating['is_twitter_username_match_opensea_twitter'])
+    ) {
+
+        rating['rate'] = 'A';
+
+    } else if ( // Front tab is a verified OpenSea, even if others are missing
+        rating['is_opensea_safelist'] && 
+        rating['frontTabCategory'] == 'opensea'
     ) {
 
         rating['rate'] = 'A';

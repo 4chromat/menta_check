@@ -23,24 +23,13 @@ import { isTwitterURL, isOpenseaURL } from './textParsing.js';
 
 
 //-----------------------------------------------
-
-function rateEdgeCase(edgecaseHandle, edgecaseList, url) {
-    edgecaseList.push(edgecaseHandle);
-    var mentaAction = "edgecase";
-    var result = { 'result': { 'edgecaseList': edgecaseList, 'rate': 'EC' } }
-    const mentaBase = { 'frontTab': url }
-    setMainResults(result, mentaBase, mentaAction)
-    return;
-}
-
-//-----------------------------------------------
 // MAIN
 //-----------------------------------------------
 
 // Main function grabs slugs and runs API for restuls
 async function mainProcess(url, openseaURLs, twitterURLs, edgecaseList) {
 
-    var uniqueUrl = true;
+    var frontTabCategory = 'uniqueUrl';
     var baseWebsite = null;
     var baseTwitter = null;
     var baseSlug = null;
@@ -57,7 +46,7 @@ async function mainProcess(url, openseaURLs, twitterURLs, edgecaseList) {
     // If front tab is Twitter/OpenSea profile grab basewebsite from it
     if (isTwitterURL(url)) {
 
-        uniqueUrl = false;
+        frontTabCategory = 'twitter';
         baseTwitter = getTwitterUsername([url])[0];
         // SERVER FUNC
         // if we have  base twitter check server
@@ -75,7 +64,7 @@ async function mainProcess(url, openseaURLs, twitterURLs, edgecaseList) {
 
     } else if (isOpenseaURL(url)) {
 
-        uniqueUrl = false;
+        frontTabCategory = 'opensea';
         baseSlug = getOpenseaSlug([url])[0];
         // SERVER FUNC
         // if we have  base openSea check server
@@ -98,13 +87,13 @@ async function mainProcess(url, openseaURLs, twitterURLs, edgecaseList) {
         rootDomain = openseaData.external_url ? standarizeUrl(openseaData.external_url) : null;
 
     } else if (standarizeUrl(url) === 'opensea.io') {
-        uniqueUrl = false;
+        frontTabType = 'opensea';
         rateEdgeCase('openseaNotInCollection', edgecaseList, url);
         return;
     }
 
     // If front tab is a unique url scrape Twitter and OpenSea handles from it
-    if (uniqueUrl) {
+    if (frontTabCategory === 'uniqueUrl') {
 
         baseWebsite = url;
         rootDomain = baseWebsite ? standarizeUrl(baseWebsite) : null;
@@ -182,6 +171,7 @@ async function mainProcess(url, openseaURLs, twitterURLs, edgecaseList) {
 
     const mentaObj = {
         'frontTab': url,
+        'frontTabCategory': frontTabCategory,
         'baseTwitter': baseTwitter,
         'baseSlug': baseSlug,
         'baseWebsite': baseWebsite,
@@ -198,10 +188,20 @@ async function mainProcess(url, openseaURLs, twitterURLs, edgecaseList) {
     // console.log(mentaObj);
 
     console.log("Call confidenceRating: ");
+
     const resultFinal = await confidenceRating(mentaObj, edgecaseList);
 
     mentaObj['runTimeMSecs'] = `${Math.floor((Date.now() - start))}`;
 
     setMainResults(resultFinal, mentaObj, mentaAction)
 
+}
+
+function rateEdgeCase(edgecaseHandle, edgecaseList, url) {
+    edgecaseList.push(edgecaseHandle);
+    var mentaAction = "edgecase";
+    var result = { 'result': { 'edgecaseList': edgecaseList, 'rate': 'EC' } }
+    const mentaBase = { 'frontTab': url }
+    setMainResults(result, mentaBase, mentaAction)
+    return;
 }
