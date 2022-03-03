@@ -4,8 +4,8 @@ import { addMentaObjFunction, addLogFunction } from './cloudFunCalls'
 // UI FUNCTIONS
 //-----------------------------------------------
 // Function to create results UI
-// dataObj: result coming from api
-// uniqueUrl: boolean if tab url is not opensea or twitter page
+// dataObj: rating flags coming from confidenceRating
+// mentaAction: string to trace where the result is stored in Firebase
 
 function setResults(dataObj, mentaAction) {
 
@@ -13,7 +13,9 @@ function setResults(dataObj, mentaAction) {
     resultList.innerHTML = '';
     resultList.appendChild(createListDiv("", "", ""));
 
+    // setting img in logo according to rate
     let rate = dataObj.rate;
+    var logo = setLogo(rate);
 
     let websiteF = dataObj.is_website_found;
     let twitterF = dataObj.is_twitter_found;
@@ -31,17 +33,6 @@ function setResults(dataObj, mentaAction) {
     let linkW = dataObj.baseWebsite;
     let linkT = "https://www.twitter.com/" + dataObj.baseTwitter;
     let linkO = "https://www.opensea.io/collection/" + dataObj.baseSlug;
-
-    // setting img in logo:
-    var logo = document.getElementById("logoImg")
-    if (rate == 'A+') { logo.src = "/img/logo_aa.svg" }
-    if (rate == 'A') { logo.src = "/img/logo_a.svg" }
-    if (rate == 'B') { logo.src = "/img/logo_b.svg" }
-    if (rate == 'C') { logo.src = "/img/logo_c.svg" }
-    if (rate == 'D') { logo.src = "/img/logo_d.svg" }
-    if (rate == 'F') { logo.src = "/img/logo_f.svg" }
-    if (rate == 'NA') { logo.src = "/img/logo_q.svg" }
-    if (rate == 'EC') { logo.src = "/img/logo_q.svg" }
 
 
     // Check for known edge cases. TO do: move to confidenceRating()
@@ -116,6 +107,19 @@ function setResults(dataObj, mentaAction) {
         resultList.appendChild(createListDiv(`Floor price: ${dataObj.floorPrice}`, "good"));
 
     return;
+}
+
+function setLogo(rate) {
+    var logo = document.getElementById("logoImg")
+    if (rate == 'A+') { logo.src = "/img/logo_aa.svg" }
+    if (rate == 'A') { logo.src = "/img/logo_a.svg" }
+    if (rate == 'B') { logo.src = "/img/logo_b.svg" }
+    if (rate == 'C') { logo.src = "/img/logo_c.svg" }
+    if (rate == 'D') { logo.src = "/img/logo_d.svg" }
+    if (rate == 'F') { logo.src = "/img/logo_f.svg" }
+    if (rate == 'NA') { logo.src = "/img/logo_q.svg" }
+    if (rate == 'EC') { logo.src = "/img/logo_q.svg" }
+    return logo;
 }
 
 function createListDiv(info, iconStatus, link) {
