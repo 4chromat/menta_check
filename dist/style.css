@@ -9,8 +9,8 @@ html {
 
 .mainBody {
     /* width: 20em; */
-    width: 250px;
-    font-size: 15px;
+    width: 225px;
+    font-size: 13px;
 }
 
 
@@ -27,7 +27,7 @@ html {
 
 #logoImg {
     /* width: 19em; */
-    width: 240px;
+    width: 215px;
     margin: auto;
     text-align: center;
     display: inline-block;
