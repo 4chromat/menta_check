@@ -35,7 +35,7 @@ function setResults(dataObj, mentaAction) {
 
     let linkW = dataObj.baseWebsite;
     let linkT = "https://www.twitter.com/" + dataObj.baseTwitter;
-    let linkO = "https://www.opensea.io/collection/" + dataObj.baseSlug;
+    let linkO = "https://opensea.io/collection/" + dataObj.baseSlug;
 
 
     // Check for known edge cases. TO do: move to confidenceRating()
@@ -148,6 +148,7 @@ function createListDiv(info, iconStatus, link) {
             a.appendChild(linkText);
             a.title = link;
             a.href = link;
+            a.setAttribute('target', '_blank');
             content.appendChild(a);
         } else {
             var text = document.createElement("p");
