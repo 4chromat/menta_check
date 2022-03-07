@@ -48,88 +48,93 @@ async function mainProcess(url, openseaURLs, twitterURLs, edgecaseList) {
 
         frontTabCategory = 'twitter';
         baseTwitter = getTwitterUsername([url])[0];
-        // SERVER FUNC
-        // if we have  base twitter check server
-        // result is an object that holds 'ratings' under 'results.result'
+        // SERVER FUNCTION - check if baseTwitter is already in Firebase
+        // 'result' is an object that holds confidence flags, same as 'mentaObj.ratings'
         var result = await checkWhiteListFunction(baseTwitter, "base_twitter");
         if (result != "NOTHING") {
+            // drop console print before updating on Chrome Store
+            // console.log('Allowlist result via baseTwitter is', result)
+
             console.log("checkWhiteListFunction pass")
+            baseSlug = result.result.baseSlug;
+            baseWebsite = result.result.baseWebsite;
             mentaAction = "allowlist";
-            const mentaBase = { 'frontTab': url }
-            setMainResults(result, mentaBase, mentaAction)
-            return;
+            // Don't drop action to read all the result from DB yet, it may be used later for consecutive ratings
+            // //const mentaBase = { 'frontTab': url }
+            // //setMainResults(result, mentaBase, mentaAction)
+            // // return;
         }
+
         twitterData = await transformTwitterResponse(baseTwitter);
-        rootDomain = twitterData.expanded_url ? standarizeUrl(twitterData.expanded_url) : null;
 
     } else if (isOpenseaURL(url)) {
 
         frontTabCategory = 'opensea';
         baseSlug = getOpenseaSlug([url])[0];
-        // SERVER FUNC
-        // if we have  base openSea check server
+        // SERVER FUNCTION - check if baseSlug is already in Firebase
         var result = await checkWhiteListFunction(baseSlug, "base_slug");
+
         if (result != "NOTHING") {
+            // drop console print before updating on Chrome Store
+            // console.log('Allowlist result via baseOpenSea is', result)
+
             mentaAction = "allowlist";
             console.log("checkWhiteListFunction pass")
-            const mentaBase = { 'frontTab': url }
-            setMainResults(result, mentaBase, mentaAction)
-            return;
+            baseTwitter = result.result.baseTwitter;
+            baseWebsite = result.result.baseWebsite;
+            // const mentaBase = { 'frontTab': url }
+            // setMainResults(result, mentaBase, mentaAction)
+            // return;
         }
         openseaData = await transformOpenseaResponse(baseSlug);
 
         // Newer OpenSea profiles do not return twitter in API, only scrape
-        if (!openseaData.twitter_username) {
+        if (!'twitter_username' in openseaData || !openseaData.twitter_username) {
             const temp = getTwitterUsername(twitterURLs);
             openseaData.twitter_username = temp.length > 0 ? temp[0] : null;
         }
-
-        rootDomain = openseaData.external_url ? standarizeUrl(openseaData.external_url) : null;
-
     } else if (standarizeUrl(url) === 'opensea.io') {
+
         frontTabType = 'opensea';
         rateEdgeCase('openseaNotInCollection', edgecaseList, url);
         return;
-    }
 
-    // If front tab is a unique url scrape Twitter and OpenSea handles from it
-    if (frontTabCategory === 'uniqueUrl') {
+    } else if (frontTabCategory === 'uniqueUrl') {
+        // If front tab is a unique url scrape Twitter and OpenSea handles from it
 
         baseWebsite = url;
         rootDomain = baseWebsite ? standarizeUrl(baseWebsite) : null;
 
-        // SERVER FUNC
-        // if we have  base root domain check server
+        // SERVER FUNCTION - check if baseWebsite is already in Firebase
         var result = await checkWhiteListFunction(rootDomain, "root_domain");
         if (result != "NOTHING") {
+            // drop console print before updating on Chrome Store
+            // console.log('Allowlist result via baseWebsite is', result)
             mentaAction = "allowlist";
-            console.log("checkWhiteListFunction pass ")
-            const mentaBase = { 'frontTab': url }
-            setMainResults(result, mentaBase, mentaAction)
-            return;
+            console.log("checkWhiteListFunction pass")
+            baseTwitter = result.result.baseTwitter;
+            baseSlug = result.result.baseSlug;
+            // const mentaBase = { 'frontTab': url }
+            // setMainResults(result, mentaBase, mentaAction)
+            // return;
         }
-
         openseaSlugs = getOpenseaSlug(openseaURLs);
-        baseSlug = openseaSlugs.length > 0 ? openseaSlugs[0] : null;
-        openseaData = await transformOpenseaResponse(baseSlug);
-
         twitterUsernames = getTwitterUsername(twitterURLs)
-        baseTwitter = twitterUsernames.length > 0 ? twitterUsernames[0] : null;
-        twitterData = await transformTwitterResponse(baseTwitter);
 
         websiteData = transformWebsiteScrape(baseWebsite, twitterUsernames, openseaSlugs);
 
-    } else {
-        // If front tab is Twitter profile then scrape the website link listed to get OpenSea slugs
-        // If front tab is OpenSea profile then scrape the website link listed to get Twitter usernames
+    } 
+
+    if (frontTabCategory !== 'uniqueUrl' && (!baseTwitter || !baseSlug || !websiteData)) {
+        // If front tab is Twitter/OpenSea profile then scrape the external url link listed 
+        // to get the missing data
 
         console.log("Using profiles for unique URL")
 
-        if (openseaData && openseaData.external_url) {
+        if (!baseWebsite && openseaData && openseaData.external_url)
             baseWebsite = openseaData.external_url;
-        } else if (twitterData && twitterData.expanded_url) {
+        if (!baseWebsite && twitterData && twitterData.expanded_url)
             baseWebsite = twitterData.expanded_url;
-        }
 
         console.log("URL: " + baseWebsite);
 
@@ -154,19 +159,26 @@ async function mainProcess(url, openseaURLs, twitterURLs, edgecaseList) {
         }
 
         websiteData = transformWebsiteScrape(baseWebsite, twitterUsernames, openseaSlugs);
+    }
 
-        if (twitterData === null) {
-            baseTwitter = twitterUsernames ? twitterUsernames[0] : null;
-            if (twitterData === null && openseaData.twitter_username)
+    if (twitterData === null) {
+        if (!baseTwitter) {
+            if (openseaData && 'twitter_username' in openseaData)
                 baseTwitter = openseaData.twitter_username;
-            twitterData = await transformTwitterResponse(baseTwitter);
+            else if (twitterUsernames)
+                baseTwitter = twitterUsernames[0];
         }
+        twitterData = await transformTwitterResponse(baseTwitter);
+    }
 
-        if (openseaData === null) {
-            baseSlug = openseaSlugs ? openseaSlugs[0] : null;
-            openseaData = await transformOpenseaResponse(baseSlug);
+    if (openseaData === null) {
+        if (!baseSlug) {
+            if (mentaAction == 'allowList' && result.result.baseSlug !== "")
+                baseSlug = result.result.baseSlug;
+            else if (openseaSlugs)
+                baseSlug = openseaSlugs[0];
         }
-
+        openseaData = await transformOpenseaResponse(baseSlug);
     }
 
     const mentaObj = {
@@ -185,7 +197,7 @@ async function mainProcess(url, openseaURLs, twitterURLs, edgecaseList) {
     // console.log('Base Website: ' + baseWebsite);
     // console.log('Base Twitter: ' + baseTwitter);
     // console.log('Base OpenSea: ' + baseSlug);
-    // console.log(mentaObj);
+    // console.log('mentaObj is:', mentaObj);
 
     console.log("Call confidenceRating: ");
 

@@ -221,6 +221,10 @@ async function transformOpenseaResponse(collectionName) {
 
             data['status'] = 'completed';
 
+            // // drop console print before updating on Chrome Store
+            // console.log('OpenSea response is', response)
+            // console.log('OpenSea data is', data)
+            
             return data;
 
         } else {

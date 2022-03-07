@@ -76,6 +76,9 @@ async function confidenceRating(mentaObj, edgecaseList) {
 
     console.log("Computing confidence rating...")
 
+    // drop console print before updating on Chrome Store
+    // console.log('mentaObj in confidenceRating is:', mentaObj)
+
     if ( // OpenSea and Twitter not found, then rate NA
         !rating['is_twitter_found'] &&
         !rating['is_opensea_found']
@@ -108,8 +111,10 @@ async function confidenceRating(mentaObj, edgecaseList) {
         rating['rate'] = 'A';
 
     } else if ( // Front tab is a verified OpenSea, even if others are missing
-        rating['is_opensea_safelist'] && 
-        rating['frontTabCategory'] == 'opensea'
+        (rating['is_opensea_safelist'] && 
+        rating['frontTabCategory'] == 'opensea') || 
+        (rating['is_twitter_verified'] && 
+        rating['frontTabCategory'] == 'twitter')
     ) {
 
         rating['rate'] = 'A';

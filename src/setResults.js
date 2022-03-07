@@ -9,6 +9,9 @@ import { addMentaObjFunction, addLogFunction } from './cloudFunCalls'
 
 function setResults(dataObj, mentaAction) {
 
+    // drop console print before updating on Chrome Store
+    // console.log('dataObj in setResults is:', dataObj)
+
     var resultList = document.getElementById("resultList")
     resultList.innerHTML = '';
     resultList.appendChild(createListDiv("", "", ""));
@@ -103,7 +106,7 @@ function setResults(dataObj, mentaAction) {
         resultList.appendChild(createListDiv("Can you mint here?", "question"));
 
     // setting floor price if found. TO DO:  Refresh floor price when from allowlist
-    if (mentaAction == 'mentalog' && dataObj.floorPrice)
+    if (dataObj.floorPrice)
         resultList.appendChild(createListDiv(`Floor price: ${dataObj.floorPrice}`, "good"));
 
     return;
@@ -180,9 +183,9 @@ function setMainResults(result, mentaObj, mentaAction) {
         addMentaObjFunction(mentaBase)
 
     } else {
-        // console.log(result.result);  // drop console print before updating on Chrome Store
-        setResults(result.result, mentaAction)
-        rate = result.result.rate
+        // console.log(result);  // drop console print before updating on Chrome Store
+        setResults(result.rating, mentaAction)
+        rate = result.rating.rate
         frontTab = mentaObj.frontTab;
     }
 
