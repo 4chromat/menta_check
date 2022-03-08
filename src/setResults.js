@@ -118,11 +118,11 @@ function setResults(dataObj, mentaAction) {
         resultList.appendChild(createListDiv(`Floor price: ${temp}`, "opensea"));
     }
     if (dataObj.totalVolume) {
-        var temp = dataObj.totalVolume.toLocaleString(undefined, { minimumFractionDigits: 0 })
+        var temp = dataObj.totalVolume.toLocaleString(undefined, { maximumFractionDigits: 0 })
         resultList.appendChild(createListDiv(`Total volume: ${temp}`, "opensea"));
     }
     if (dataObj.followersCount) {
-        var temp = dataObj.followersCount.toLocaleString(undefined, { minimumFractionDigits: 0 })
+        var temp = dataObj.followersCount.toLocaleString(undefined, { maximumFractionDigits: 0 })
         resultList.appendChild(createListDiv(`Followers count: ${temp}`, "twitter"));
     }
 
