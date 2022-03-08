@@ -44,17 +44,20 @@ function setResults(dataObj, mentaAction) {
         var mssg = "";
 
         if (dataObj.edgecaseList.includes('openseaNotInCollection')) {
+            logo.src = "/img/logo_q.svg"
             mssg = "During Beta, Menta only scores 'collection' pages in OpenSea."
-        }
 
-        if (!openseaF && dataObj.edgecaseList.includes('solanaLinkFound')) {
+        } else if (!openseaF && dataObj.edgecaseList.includes('solanaLinkFound')) {
             // To do: log this as edgecase, rn it goes to mentalog rate C
+            logo.src = "/img/logo_q.svg"
             mssg = "During Beta, Menta does not support Solana collections."
+
+        } else if (dataObj.edgecaseList.includes('checkMentaSite')) {
+            logo.src = "/img/logo_aa.svg"
+            mssg = "Contact us at hello@checkmenta.com for suggestions and feature requests!"
         }
 
         if (mssg !== "") {
-
-            logo.src = "/img/logo_q.svg"
             resultList.appendChild(createListDiv(mssg, "", ""));
             return;
         }

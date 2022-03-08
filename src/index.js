@@ -102,6 +102,12 @@ async function mainProcess(url, openseaURLs, twitterURLs, edgecaseList) {
         rateEdgeCase('openseaNotInCollection', edgecaseList, url);
         return;
 
+    } else if (standarizeUrl(url) === 'checkmenta.com') {
+
+        frontTabCategory = 'menta';
+        rateEdgeCase('checkMentaSite', edgecaseList, url);
+        return;
+
     } else if (frontTabCategory === 'uniqueUrl') {
         // If front tab is a unique url scrape Twitter and OpenSea handles from it
 
