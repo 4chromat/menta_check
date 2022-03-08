@@ -54,8 +54,8 @@ async function mainProcess(url, openseaURLs, twitterURLs, edgecaseList) {
         if (result != "NOTHING") {
             // drop console print before updating on Chrome Store
             // console.log('Allowlist result via baseTwitter is', result)
+            // console.log("checkWhiteListFunction pass")
 
-            console.log("checkWhiteListFunction pass")
             baseSlug = result.result.baseSlug;
             baseWebsite = result.result.baseWebsite;
             mentaAction = "allowlist";
@@ -66,6 +66,7 @@ async function mainProcess(url, openseaURLs, twitterURLs, edgecaseList) {
         }
 
         twitterData = await transformTwitterResponse(baseTwitter);
+        rootDomain = twitterData.expanded_url ? standarizeUrl(twitterData.expanded_url) : null;
 
     } else if (isOpenseaURL(url)) {
 
@@ -77,9 +78,9 @@ async function mainProcess(url, openseaURLs, twitterURLs, edgecaseList) {
         if (result != "NOTHING") {
             // drop console print before updating on Chrome Store
             // console.log('Allowlist result via baseOpenSea is', result)
+            // console.log("checkWhiteListFunction pass")
 
             mentaAction = "allowlist";
-            console.log("checkWhiteListFunction pass")
             baseTwitter = result.result.baseTwitter;
             baseWebsite = result.result.baseWebsite;
             // const mentaBase = { 'frontTab': url }
@@ -87,12 +88,14 @@ async function mainProcess(url, openseaURLs, twitterURLs, edgecaseList) {
             // return;
         }
         openseaData = await transformOpenseaResponse(baseSlug);
-
+        rootDomain = openseaData.external_url ? standarizeUrl(openseaData.external_url) : null;
+        
         // Newer OpenSea profiles do not return twitter in API, only scrape
         if (!'twitter_username' in openseaData || !openseaData.twitter_username) {
             const temp = getTwitterUsername(twitterURLs);
             openseaData.twitter_username = temp.length > 0 ? temp[0] : null;
         }
+        
     } else if (standarizeUrl(url) === 'opensea.io') {
 
         frontTabCategory = 'opensea';
@@ -110,8 +113,9 @@ async function mainProcess(url, openseaURLs, twitterURLs, edgecaseList) {
         if (result != "NOTHING") {
             // drop console print before updating on Chrome Store
             // console.log('Allowlist result via baseWebsite is', result)
+            // console.log("checkWhiteListFunction pass")
+
             mentaAction = "allowlist";
-            console.log("checkWhiteListFunction pass")
             baseTwitter = result.result.baseTwitter;
             baseSlug = result.result.baseSlug;
             // const mentaBase = { 'frontTab': url }
@@ -123,7 +127,7 @@ async function mainProcess(url, openseaURLs, twitterURLs, edgecaseList) {
 
         websiteData = transformWebsiteScrape(baseWebsite, twitterUsernames, openseaSlugs);
 
-    } 
+    }
 
     if (frontTabCategory !== 'uniqueUrl' && (!baseTwitter || !baseSlug || !websiteData)) {
         // If front tab is Twitter/OpenSea profile then scrape the external url link listed 
@@ -179,6 +183,25 @@ async function mainProcess(url, openseaURLs, twitterURLs, edgecaseList) {
                 baseSlug = openseaSlugs[0];
         }
         openseaData = await transformOpenseaResponse(baseSlug);
+    }
+
+    // If Twitter username is not on OpenSea API response it may still be on OpenSea scrape
+    if ((!'twitter_username' in openseaData || !openseaData.twitter_username) && baseSlug) {
+        if (result.is_twitter_username_match_opensea_twitter)
+            openseaData.twitter_username = result.baseTwitter
+        else {
+            var temp = "https://opensea.io/collection/" + baseSlug;
+            var links = await getWebpageUrls(temp);
+            const twitterURLsOpensea = []
+            if (links.length > 0) {
+                for (var link of links) {
+                    if (isTwitterURL(link) && link != 'https://twitter.com/opensea')
+                        twitterURLsOpensea.push(link);
+                }
+                twitterUsernames = getTwitterUsername(twitterURLsOpensea);
+                openseaData.twitter_username = twitterUsernames.length > 0 ? twitterUsernames[0] : null;
+            }
+        }
     }
 
     const mentaObj = {

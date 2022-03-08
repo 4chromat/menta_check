@@ -106,16 +106,22 @@ function setResults(dataObj, mentaAction) {
     if (!openseaF)
         resultList.appendChild(createListDiv("Can you mint here?", "question"));
 
+    // // drop console print before updating on Chrome Store
+    // console.log('dataObj is:', dataObj)
+
     // setting collection metadata if found
-    if (dataObj.floorPrice)
+    if (dataObj.floorPrice) {
         var temp = dataObj.floorPrice.toLocaleString(undefined, { minimumFractionDigits: 2 })
         resultList.appendChild(createListDiv(`Floor price: ${temp}`, "opensea"));
-    if (dataObj.totalVolume)
+    }
+    if (dataObj.totalVolume) {
         var temp = dataObj.totalVolume.toLocaleString(undefined, { minimumFractionDigits: 0 })
         resultList.appendChild(createListDiv(`Total volume: ${temp}`, "opensea"));
-    if (dataObj.followersCount)
+    }
+    if (dataObj.followersCount) {
         var temp = dataObj.followersCount.toLocaleString(undefined, { minimumFractionDigits: 0 })
         resultList.appendChild(createListDiv(`Followers count: ${temp}`, "twitter"));
+    }
 
     return;
 }

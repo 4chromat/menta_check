@@ -101,7 +101,11 @@ exports.addMetaObj = functions.https.onRequest(async (request, response) => {
         console.log("done adding mentalog")
 
         // if rate > B ADD allow list:
-        if (mentaObj.rate == 'B' || mentaObj.rate == "A" || mentaObj.rate == "A+") {
+        if ((mentaObj.rate == 'B' || mentaObj.rate == "A" || mentaObj.rate == "A+") &&
+            (mentaObj.baseWebsite && mentaObj.baseTwitter && mentaObj.baseSlug)) {
+            // Adding check for baseX since verified Twitter and OpenSea in page are default 'A'
+            // even with other data missing
+
             var allowRef = await database.ref("allowlist").once('value');
             const countAllow = allowRef.numChildren() ? allowRef.numChildren() : 0;
             const info = {
