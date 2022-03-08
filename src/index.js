@@ -95,7 +95,7 @@ async function mainProcess(url, openseaURLs, twitterURLs, edgecaseList) {
         }
     } else if (standarizeUrl(url) === 'opensea.io') {
 
-        frontTabType = 'opensea';
+        frontTabCategory = 'opensea';
         rateEdgeCase('openseaNotInCollection', edgecaseList, url);
         return;
 
@@ -204,6 +204,8 @@ async function mainProcess(url, openseaURLs, twitterURLs, edgecaseList) {
     const resultFinal = await confidenceRating(mentaObj, edgecaseList);
 
     mentaObj['runTimeMSecs'] = `${Math.floor((Date.now() - start))}`;
+
+    // console.log('mentaObj is:', mentaObj);
 
     setMainResults(resultFinal, mentaObj, mentaAction)
 

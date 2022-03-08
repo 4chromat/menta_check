@@ -12,8 +12,13 @@ async function confidenceFlags(mentaObj, edgecaseList) {
     rating['baseSlug'] = mentaObj.baseSlug;
     rating['frontTabCategory'] = mentaObj.frontTabCategory;
 
+    // Set collection metadata
     rating['floorPrice'] = mentaObj.openseaData && 'floor_price' in mentaObj.openseaData ?
         mentaObj.openseaData.floor_price : null;
+    rating['totalVolume'] = mentaObj.openseaData && 'total_volume' in mentaObj.openseaData ?
+        mentaObj.openseaData.total_volume : null;
+    rating['followersCount'] = mentaObj.twitterData && 'followers_count' in mentaObj.twitterData ?
+        mentaObj.twitterData.followers_count : null;
 
     rating['edgecaseList'] = edgecaseList;
 

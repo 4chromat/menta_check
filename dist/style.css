@@ -115,6 +115,14 @@ button:active {
     background-image: url("./img/status--question.svg");
 }
 
+.icon-twitter {
+    background-image: url("./img/twitter.svg");
+}
+
+.icon-opensea {
+    background-image: url("./img/opensea.svg");
+}
+
 
 /* unvisited link */
 a {

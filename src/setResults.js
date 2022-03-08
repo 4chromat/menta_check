@@ -53,6 +53,7 @@ function setResults(dataObj, mentaAction) {
         }
 
         if (mssg !== "") {
+
             logo.src = "/img/logo_q.svg"
             resultList.appendChild(createListDiv(mssg, "", ""));
             return;
@@ -105,9 +106,16 @@ function setResults(dataObj, mentaAction) {
     if (!openseaF)
         resultList.appendChild(createListDiv("Can you mint here?", "question"));
 
-    // setting floor price if found. TO DO:  Refresh floor price when from allowlist
+    // setting collection metadata if found
     if (dataObj.floorPrice)
-        resultList.appendChild(createListDiv(`Floor price: ${dataObj.floorPrice}`, "good"));
+        var temp = dataObj.floorPrice.toLocaleString(undefined, { minimumFractionDigits: 2 })
+        resultList.appendChild(createListDiv(`Floor price: ${temp}`, "opensea"));
+    if (dataObj.totalVolume)
+        var temp = dataObj.totalVolume.toLocaleString(undefined, { minimumFractionDigits: 0 })
+        resultList.appendChild(createListDiv(`Total volume: ${temp}`, "opensea"));
+    if (dataObj.followersCount)
+        var temp = dataObj.followersCount.toLocaleString(undefined, { minimumFractionDigits: 0 })
+        resultList.appendChild(createListDiv(`Followers count: ${temp}`, "twitter"));
 
     return;
 }
@@ -138,6 +146,8 @@ function createListDiv(info, iconStatus, link) {
             if (iconStatus == "ver") { icon = "icon-ver"; }
             if (iconStatus == "na") { icon = "icon-na"; }
             if (iconStatus == "question") { icon = "icon-question"; }
+            if (iconStatus == "opensea") { icon = "icon-opensea"; }
+            if (iconStatus == "twitter") { icon = "icon-twitter"; }
             span.className = "icon-span " + icon;
             content.appendChild(span);
         }
@@ -183,10 +193,17 @@ function setMainResults(result, mentaObj, mentaAction) {
 
         addMentaObjFunction(mentaBase)
 
-    } else {
+    } else if (mentaAction == "allowlist") {
+
         // console.log(result);  // drop console print before updating on Chrome Store
         setResults(result.rating, mentaAction)
-        rate = result.rating.rate
+        rate = result.rating.rate;
+        frontTab = mentaObj.frontTab;
+
+    } else if (mentaAction == "edgecase") {
+        // console.log(result);  // drop console print before updating on Chrome Store
+        setResults(result.result, mentaAction)
+        rate = result.rate;
         frontTab = mentaObj.frontTab;
     }
 

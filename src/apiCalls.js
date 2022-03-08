@@ -163,7 +163,6 @@ async function transformTwitterResponse(username) {
             }
 
             data['followers_count'] = data['public_metrics']['followers_count'];
-            data['following_count'] = data['public_metrics']['following_count'];
             data['tweet_count'] = data['public_metrics']['tweet_count'];
 
             delete data['entities'];
