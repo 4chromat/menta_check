@@ -173,9 +173,9 @@ async function mainProcess(url, openseaURLs, twitterURLs, edgecaseList) {
 
     if (twitterData === null) {
         if (!baseTwitter) {
-            if (openseaData && 'twitter_username' in openseaData)
+            if (openseaData && openseaData.twitter_username)
                 baseTwitter = openseaData.twitter_username;
-            else if (twitterUsernames)
+            else if (twitterUsernames && twitterUsernames.length > 0) 
                 baseTwitter = twitterUsernames[0];
         }
         twitterData = await transformTwitterResponse(baseTwitter);
