@@ -56,9 +56,9 @@ async function checkWhitelist(root_domain, match) {
             const result = mentaSnapshot.val()
             const ix = Object.keys(result)[0]
             const temp = result[ix]
-            console.log("Result allowlist.")
-            console.log(temp)
             // drop console print before updating on Chrome Store
+            // console.log("Result allowlist.")
+            // console.log(temp)
             // console.log("Twitter")
             // console.log(temp['result']['twitterData'])
             // console.log("OpenSea")
@@ -84,12 +84,12 @@ async function checkWhitelist(root_domain, match) {
         }
         if(mentaSnapshot.val()) {
             const result = mentaSnapshot.val()
-            console.log("Result curated.")
-            console.log(result)
+            // console.log("Result curated.")
+            // console.log(result)
             return;
         }
     }
-   console.log("Result nothing." )
+//    console.log("Result nothing." )
 }
 
 async function addCurated(rDomain, bSlug, bTwitter, rRate) {
@@ -109,7 +109,7 @@ async function addCurated(rDomain, bSlug, bTwitter, rRate) {
     }
     const curatedRef = database.ref("curated/"+count)
     curatedRef.update(info);
-    console.log("done adding")
+    // console.log("done adding")
 }
 
 // Check Firebase connection + checkWhiteList function

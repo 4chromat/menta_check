@@ -179,7 +179,7 @@ function createListDiv(info, iconStatus, link) {
 }
 
 function setMainResults(result, mentaObj, mentaAction) {
-    console.log("setMainResults: " + mentaAction);
+    // console.log("setMainResults: " + mentaAction);
     var rate = null;
     var frontTab = null;
 

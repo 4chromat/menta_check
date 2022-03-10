@@ -89,13 +89,13 @@ async function mainProcess(url, openseaURLs, twitterURLs, edgecaseList) {
         }
         openseaData = await transformOpenseaResponse(baseSlug);
         rootDomain = openseaData.external_url ? standarizeUrl(openseaData.external_url) : null;
-        
+
         // Newer OpenSea profiles do not return twitter in API, only scrape
         if (!'twitter_username' in openseaData || !openseaData.twitter_username) {
             const temp = getTwitterUsername(twitterURLs);
             openseaData.twitter_username = temp.length > 0 ? temp[0] : null;
         }
-        
+
     } else if (standarizeUrl(url) === 'opensea.io') {
 
         frontTabCategory = 'opensea';
@@ -139,14 +139,14 @@ async function mainProcess(url, openseaURLs, twitterURLs, edgecaseList) {
         // If front tab is Twitter/OpenSea profile then scrape the external url link listed 
         // to get the missing data
 
-        console.log("Using profiles for unique URL")
+        // console.log("Using profiles for unique URL")
 
         if (!baseWebsite && openseaData && openseaData.external_url)
             baseWebsite = openseaData.external_url;
         if (!baseWebsite && twitterData && twitterData.expanded_url)
             baseWebsite = twitterData.expanded_url;
 
-        console.log("URL: " + baseWebsite);
+        // console.log("URL: " + baseWebsite);
 
         if (baseWebsite) {
 
@@ -163,8 +163,8 @@ async function mainProcess(url, openseaURLs, twitterURLs, edgecaseList) {
                 openseaSlugs = getOpenseaSlug(openseaURLsWeb);
                 twitterUsernames = getTwitterUsername(twitterURLsWeb);
 
-            } else {
-                console.log('No Twitter or OpenSea profiles found');
+            // } else {
+            //     console.log('No Twitter or OpenSea profiles found');
             }
         }
 
@@ -175,7 +175,7 @@ async function mainProcess(url, openseaURLs, twitterURLs, edgecaseList) {
         if (!baseTwitter) {
             if (openseaData && openseaData.twitter_username)
                 baseTwitter = openseaData.twitter_username;
-            else if (twitterUsernames && twitterUsernames.length > 0) 
+            else if (twitterUsernames && twitterUsernames.length > 0)
                 baseTwitter = twitterUsernames[0];
         }
         twitterData = await transformTwitterResponse(baseTwitter);
@@ -192,7 +192,11 @@ async function mainProcess(url, openseaURLs, twitterURLs, edgecaseList) {
     }
 
     // If Twitter username is not on OpenSea API response it may still be on OpenSea scrape
-    if ((!'twitter_username' in openseaData || !openseaData.twitter_username) && baseSlug) {
+    // This already was done when frontTab is OpenSea collection.  Only applies when 
+    // OpenSea is taken from website or Twitter.
+    if (frontTabCategory != 'opensea' && baseSlug &&
+        (!'twitter_username' in openseaData || !openseaData.twitter_username)) {
+            
         if (result.is_twitter_username_match_opensea_twitter)
             openseaData.twitter_username = result.baseTwitter
         else {
@@ -228,7 +232,7 @@ async function mainProcess(url, openseaURLs, twitterURLs, edgecaseList) {
     // console.log('Base OpenSea: ' + baseSlug);
     // console.log('mentaObj is:', mentaObj);
 
-    console.log("Call confidenceRating: ");
+    console.log("Call confidenceRating... ");
 
     const resultFinal = await confidenceRating(mentaObj, edgecaseList);
 

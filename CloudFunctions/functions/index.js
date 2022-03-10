@@ -11,12 +11,12 @@ admin.initializeApp({
 
 // Cloud Function for checking whitelist in DB 
 exports.checkWhiteList = functions.https.onRequest(async (request, response) => {
-    console.log("checkWhiteList")
+    // console.log("checkWhiteList")
     let root_domain = request.body.data.root_domain
     let match = request.body.data.match
 
     //let { body: { root_domain, match } } = request;
-    console.log(root_domain)
+    // console.log(root_domain)
     var mentaSnapshot = null;
     var database = admin.database();
 
@@ -35,7 +35,7 @@ exports.checkWhiteList = functions.https.onRequest(async (request, response) => 
         if (mentaSnapshot != null && mentaSnapshot.val() != null) {
             mentaSnapshot.forEach(function (data) {
                 var id = data.val().id;
-                console.log("Result allow " + id)
+                // console.log("Result allow " + id)
                 var result = data.val().result.rating;
                 response.json({ result: result });
             });
@@ -57,13 +57,13 @@ exports.checkWhiteList = functions.https.onRequest(async (request, response) => 
         if (mentaSnapshot != null && mentaSnapshot.val() != null) {
             mentaSnapshot.forEach(function (data) {
                 var id = data.val().id;
-                console.log("Result curated " + id)
+                // console.log("Result curated " + id)
                 var result = data.val().result.rating;
                 response.json({ result: result });
             });
         }
     }
-    console.log("Result nothing ")
+    // console.log("Result nothing ")
 
     // Send back a message that we've successfully written the message
     // res.json({result: `Message with ID: ${writeResult.id} added.`});
@@ -73,7 +73,7 @@ exports.checkWhiteList = functions.https.onRequest(async (request, response) => 
 
 // Cloud function to add metaobj
 exports.addMetaObj = functions.https.onRequest(async (request, response) => {
-    console.log("addMetaObj")
+    // console.log("addMetaObj")
     //let metaobj = request.body.data.metaobj
     let mentaObj = request.body.data.menta_obj
 
@@ -98,7 +98,7 @@ exports.addMetaObj = functions.https.onRequest(async (request, response) => {
 
         const metaAddRef = database.ref("mentalog/" + count)
         metaAddRef.update(info);
-        console.log("done adding mentalog")
+        // console.log("done adding mentalog")
 
         // if rate > B ADD allow list:
         if ((mentaObj.rate == 'B' || mentaObj.rate == "A" || mentaObj.rate == "A+") &&
@@ -120,7 +120,7 @@ exports.addMetaObj = functions.https.onRequest(async (request, response) => {
             }
             const allowAddRef = database.ref("allowlist/" + countAllow)
             allowAddRef.update(info);
-            console.log("done adding allowlist")
+            // console.log("done adding allowlist")
         }
         response.send("Done!");
     }
@@ -131,7 +131,7 @@ exports.addMetaObj = functions.https.onRequest(async (request, response) => {
 
 // Cloud function to log user events 
 exports.addEventLog = functions.https.onRequest(async (request, response) => {
-    console.log("addEventLog")
+    // console.log("addEventLog")
     let dbinfo = request.body.data.dbinfo
 
     let time = Date.now()
@@ -150,7 +150,7 @@ exports.addEventLog = functions.https.onRequest(async (request, response) => {
         }
         const logAddRef = database.ref("eventlog/" + count)
         logAddRef.update(info);
-        console.log("done adding eventlog")
+        // console.log("done adding eventlog")
 
         response.send("Done!");
     }
