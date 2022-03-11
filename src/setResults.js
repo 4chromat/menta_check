@@ -30,8 +30,8 @@ function setResults(dataObj, mentaAction) {
 
     let openSeaTwitterM = dataObj.is_twitter_username_match_opensea_twitter;
 
-    let twitterMWeb = dataObj.is_twitter_link_same_website;
-    let openSeaMWeb = dataObj.is_opensea_link_same_website;
+    let twitterMWeb = dataObj.is_twitter_link_same_website && (dataObj.is_twitter_username_in_website !== false);
+    let openSeaMWeb = dataObj.is_opensea_link_same_website && (dataObj.is_slug_in_website !== false);
 
     let linkW = dataObj.baseWebsite;
     let linkT = "https://www.twitter.com/" + dataObj.baseTwitter;

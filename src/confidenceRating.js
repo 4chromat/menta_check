@@ -25,45 +25,73 @@ async function confidenceFlags(mentaObj, edgecaseList) {
     // linked sites often list http, no www, and /$, standarize before comparison
     const linkInOpensea = ('external_url' in mentaObj.openseaData) ? standarizeUrl(mentaObj['openseaData']['external_url']) : null;
     const linkInTwitter = ('expanded_url' in mentaObj.twitterData) ? standarizeUrl(mentaObj['twitterData']['expanded_url']) : null;
-    const websiteLink = standarizeUrl(mentaObj.baseWebsite);
+    const websiteLink = ('url' in mentaObj.websiteData) ? standarizeUrl(mentaObj.websiteData.url) : null;
 
     // twitter handles are case insensitive
     const twitterUsername = mentaObj['twitterData']['username'] ? mentaObj['twitterData']['username'].toLowerCase() : null;
     const twitterInOpensea = mentaObj['openseaData']['twitter_username'] ? mentaObj['openseaData']['twitter_username'].toLowerCase() : null;
-    const baseTwitterLower = mentaObj.baseTwitter ? mentaObj.baseTwitter.toLowerCase() : null;
     const isTwitterVerified = mentaObj['twitterData']['verified'];
 
     // OpenSea slugs are case sensitive
-    const slugInTwitter = twitterUsername && mentaObj['twitterData']['expanded_url'] ?
+    const openseaSlug = 'slug' in mentaObj['openseaData'] ? mentaObj['openseaData']['slug'] : null;
+    const slugInTwitterLink = twitterUsername && mentaObj['twitterData']['expanded_url'] ?
         mentaObj['twitterData']['expanded_url'].split("opensea.io/collection/")[1] : null;
     const isOpenseaSafelist = (mentaObj['openseaData']['safelist_request_status'] === 'verified') ||
         (mentaObj['openseaData']['safelist_request_status'] === 'approved');
 
+    // Check if each profiles' data was obtained from APIs
     rating['is_website_found'] = ('url' in mentaObj.websiteData) ? true : false;
     rating['is_twitter_found'] = ('id' in mentaObj.twitterData) ? true : false;
     rating['is_opensea_found'] = ('slug' in mentaObj.openseaData) ? true : false;
-    rating['is_twitter_found_in_opensea'] = ('twitter_username' in mentaObj.openseaData) &&
-        mentaObj.openseaData.twitter_username !== null ? true : false;
+
+    // Check verified/approved status
     rating['is_twitter_verified'] = isTwitterVerified === true;
     rating['is_opensea_safelist'] = isOpenseaSafelist
 
+    // - Twitter found in opensea page (API or scrape), twitterData could have failed for wrong handles
+    rating['is_twitter_found_in_opensea'] = ('twitter_username' in mentaObj.openseaData) &&
+        mentaObj.openseaData.twitter_username !== null ? true : false;
+
+    //// Verify cross-referenced data checks out:
+    // Same twitter handle in Twitter API response and OpenSea API response (or opensea scrape)
     rating['is_twitter_username_match_opensea_twitter'] = twitterInOpensea === twitterUsername;
+    // Same external_url (website) listed in Twitter API and OpenSea API
     rating['is_opensea_webpage_match_twitter_webpage'] = linkInOpensea === linkInTwitter;
-
-    // drop console print before updating on Chrome Store
-    // console.log("websiteLink: " + websiteLink)
-    // console.log("linkInTwitter: " + linkInTwitter)
-    // console.log("linkInOpensea: " + linkInOpensea)
-
+    // Same external_url in OpenSea API and our unique URL
+    rating['is_opensea_link_same_website'] = (linkInOpensea !== null) && (linkInOpensea === websiteLink);
+    // Same link listed in twitter profile in website url OR opensea collection page
     rating['is_twitter_link_same_website'] = (linkInTwitter !== null) &&
         ((linkInTwitter === websiteLink) ||
-            ((slugInTwitter !== null) && (slugInTwitter === mentaObj.baseSlug)));
-    rating['is_opensea_link_same_website'] = (linkInOpensea === websiteLink) && (linkInOpensea !== null);
+            ((slugInTwitterLink !== null) && (slugInTwitterLink === mentaObj.baseSlug)));
+
+    // Same slug and twitter handles from APIs are also on website
+    if ('twitter_username_array' in mentaObj.websiteData)
+        var twitterUsernamesInWebsite = mentaObj['websiteData']['twitter_username_array'];
+    else
+        var twitterUsernamesInWebsite = [];
+
+    if (twitterUsernamesInWebsite.length > 0)
+        // true: username in website
+        // false: another username in website
+        // null: no usernames in website
+        rating['is_twitter_username_in_website'] = twitterUsernamesInWebsite.includes(twitterUsername) ? true : false;
+    else
+        rating['is_twitter_username_in_website'] = null;
+
+    if ('opensea_slug_array' in mentaObj.websiteData)
+        var slugsInWebsite = mentaObj['websiteData']['opensea_slug_array'];
+    else
+        var slugsInWebsite = [];
+
+    if (slugsInWebsite.length > 0)
+        rating['is_slug_in_website'] = slugsInWebsite.includes(openseaSlug) ? true : false;
+    else
+        rating['is_slug_in_website'] = null;
+
+    // Exception case for linktrees 
     rating['is_twitter_link_linktree'] = linkInTwitter === "linktr.ee";
 
-    rating['is_twitter_username_in_website'] = twitterUsername === baseTwitterLower;
-    rating['is_slug_in_website'] = mentaObj['openseaData']['slug'] === mentaObj.baseSlug !== null;
-
+    // Check if any profile in blocklist
     rating['is_twitter_username_in_blocklist'] = false; // To do: create Blocklist
     rating['is_opensea_slug_in_blocklist'] = false; // To do: create Blocklist
     rating['is_website_in_blocklist'] = false; // To do: create Blocklist
@@ -97,7 +125,8 @@ async function confidenceRating(mentaObj, edgecaseList) {
         rating['is_twitter_found_in_opensea'] &&
         rating['is_twitter_username_match_opensea_twitter'] &&
         rating['is_twitter_link_same_website'] &&
-        rating['is_opensea_link_same_website']
+        rating['is_opensea_link_same_website'] &&
+        rating['is_slug_in_website'] !== false
     ) {
 
         rating['rate'] = 'A+';
@@ -106,20 +135,22 @@ async function confidenceRating(mentaObj, edgecaseList) {
         (rating['is_twitter_verified'] &&
             rating['is_twitter_link_same_website'] &&
             rating['is_opensea_found'] &&
-            rating['is_twitter_username_match_opensea_twitter']) ||
+            rating['is_twitter_username_match_opensea_twitter'] &&
+            rating['is_slug_in_website'] !== false) ||
         (rating['is_opensea_safelist'] &&
             rating['is_opensea_link_same_website'] &&
             rating['is_twitter_found'] &&
-            rating['is_twitter_username_match_opensea_twitter'])
+            rating['is_twitter_username_match_opensea_twitter'] &&
+            rating['is_slug_in_website'] !== false)
     ) {
 
         rating['rate'] = 'A';
 
-    } else if ( // Front tab is a verified OpenSea, even if others are missing
-        (rating['is_opensea_safelist'] && 
-        rating['frontTabCategory'] == 'opensea') || 
-        (rating['is_twitter_verified'] && 
-        rating['frontTabCategory'] == 'twitter')
+    } else if ( // Front tab is a verified OpenSea/Twitter, even if others are missing
+        (rating['is_opensea_safelist'] &&
+            rating['frontTabCategory'] == 'opensea') ||
+        (rating['is_twitter_verified'] &&
+            rating['frontTabCategory'] == 'twitter')
     ) {
 
         rating['rate'] = 'A';
@@ -127,14 +158,17 @@ async function confidenceRating(mentaObj, edgecaseList) {
     } else if ( // One account verified and other found, or all found, then rate 'B'
         (rating['is_twitter_verified'] &&
             rating['is_twitter_link_same_website'] &&
-            rating['is_opensea_found']) ||
+            rating['is_opensea_found'] &&
+            rating['is_slug_in_website'] !== false) ||
         (rating['is_opensea_safelist'] &&
             rating['is_opensea_link_same_website'] &&
-            rating['is_twitter_found']) ||
+            rating['is_twitter_found'] &&
+            rating['is_slug_in_website'] !== false) ||
         (rating['is_twitter_found'] &&
             rating['is_opensea_found'] &&
             rating['is_opensea_link_same_website'] &&
             rating['is_twitter_found_in_opensea'] &&
+            rating['is_slug_in_website'] !== false &&
             (rating['is_twitter_link_same_website'] || rating['is_twitter_link_linktree']))
     ) {
 
@@ -147,17 +181,20 @@ async function confidenceRating(mentaObj, edgecaseList) {
         ) ||
         (rating['is_opensea_found'] &&
             rating['is_opensea_link_same_website'] &&
-            !rating['is_twitter_found']
+            !rating['is_twitter_found'] &&
+            rating['is_slug_in_website'] !== false
         ) ||
         (rating['is_opensea_found'] &&
-            rating['is_twitter_found'])
+            rating['is_twitter_found'] &&
+            rating['is_slug_in_website'] !== false)
     ) {
 
         rating['rate'] = 'C';
 
     } else if ( // Accounts not verified, mismatch, or data clash then rate 'D'
         !(rating['is_twitter_link_same_website'] ||
-            rating['is_opensea_link_same_website'])
+            rating['is_opensea_link_same_website']) ||
+        rating['is_slug_in_website'] === false
     ) {
 
         rating['rate'] = 'D';

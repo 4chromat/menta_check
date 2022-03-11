@@ -36,8 +36,8 @@ async function mainProcess(url, openseaURLs, twitterURLs, edgecaseList) {
     var websiteData = null;
     var twitterData = null;
     var openseaData = null;
-    var openseaSlugs = null;
-    var twitterUsernames = null;
+    var openseaSlugs = [];
+    var twitterUsernames = [];
     var rootDomain = null;
     const start = Date.now();
 
@@ -206,7 +206,7 @@ async function mainProcess(url, openseaURLs, twitterURLs, edgecaseList) {
             if (links.length > 0) {
                 for (var link of links) {
                     if (isTwitterURL(link) && link != 'https://twitter.com/opensea')
-                        twitterURLsOpensea.push(link);
+                        twitterURLsOpensea.push(link.toLowerCase());
                 }
                 twitterUsernames = getTwitterUsername(twitterURLsOpensea);
                 openseaData.twitter_username = twitterUsernames.length > 0 ? twitterUsernames[0] : null;
