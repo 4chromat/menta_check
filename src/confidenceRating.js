@@ -7,21 +7,6 @@ async function confidenceFlags(mentaObj, edgecaseList) {
 
     const rating = {};
 
-    rating['baseWebsite'] = mentaObj.baseWebsite;
-    rating['baseTwitter'] = mentaObj.baseTwitter;
-    rating['baseSlug'] = mentaObj.baseSlug;
-    rating['frontTabCategory'] = mentaObj.frontTabCategory;
-
-    // Set collection metadata
-    rating['floorPrice'] = mentaObj.openseaData && 'floor_price' in mentaObj.openseaData ?
-        mentaObj.openseaData.floor_price : null;
-    rating['totalVolume'] = mentaObj.openseaData && 'total_volume' in mentaObj.openseaData ?
-        mentaObj.openseaData.total_volume : null;
-    rating['followersCount'] = mentaObj.twitterData && 'followers_count' in mentaObj.twitterData ?
-        mentaObj.twitterData.followers_count : null;
-
-    rating['edgecaseList'] = edgecaseList;
-
     // linked sites often list http, no www, and /$, standarize before comparison
     const linkInOpensea = ('external_url' in mentaObj.openseaData) ? standarizeUrl(mentaObj['openseaData']['external_url']) : null;
     const linkInTwitter = ('expanded_url' in mentaObj.twitterData) ? standarizeUrl(mentaObj['twitterData']['expanded_url']) : null;
@@ -34,10 +19,21 @@ async function confidenceFlags(mentaObj, edgecaseList) {
 
     // OpenSea slugs are case sensitive
     const openseaSlug = 'slug' in mentaObj['openseaData'] ? mentaObj['openseaData']['slug'] : null;
-    const slugInTwitterLink = twitterUsername && mentaObj['twitterData']['expanded_url'] ?
-        mentaObj['twitterData']['expanded_url'].split("opensea.io/collection/")[1] : null;
+    const slugInTwitterLink = twitterUsername && mentaObj['twitterData']['expanded_url'] ? mentaObj['twitterData']['expanded_url'].split("opensea.io/collection/")[1] : null;
     const isOpenseaSafelist = (mentaObj['openseaData']['safelist_request_status'] === 'verified') ||
         (mentaObj['openseaData']['safelist_request_status'] === 'approved');
+
+    rating['baseWebsite'] = mentaObj.baseWebsite;
+    rating['baseTwitter'] = mentaObj.baseTwitter;
+    rating['baseSlug'] = mentaObj.baseSlug;
+    rating['frontTabCategory'] = mentaObj.frontTabCategory;
+
+    // Set collection metadata
+    rating['floorPrice'] = 'floor_price' in mentaObj.openseaData ? mentaObj.openseaData.floor_price : null;
+    rating['totalVolume'] = 'total_volume' in mentaObj.openseaData ? mentaObj.openseaData.total_volume : null;
+    rating['followersCount'] = 'followers_count' in mentaObj.twitterData ? mentaObj.twitterData.followers_count : null;
+
+    rating['edgecaseList'] = edgecaseList;
 
     // Check if each profiles' data was obtained from APIs
     rating['is_website_found'] = ('url' in mentaObj.websiteData) ? true : false;
@@ -46,13 +42,22 @@ async function confidenceFlags(mentaObj, edgecaseList) {
 
     // Check verified/approved status
     rating['is_twitter_verified'] = isTwitterVerified === true;
-    rating['is_opensea_safelist'] = isOpenseaSafelist
+    rating['is_opensea_safelist'] = isOpenseaSafelist;
 
-    // - Twitter found in opensea page (API or scrape), twitterData could have failed for wrong handles
+    // Exception case for linktrees. TO DO: Scrape link tree
+    rating['is_twitter_link_linktree'] = linkInTwitter === "linktr.ee";
+
+    // Check if any profile in blocklist
+    rating['is_twitter_username_in_blocklist'] = false; // To do: create Blocklist
+    rating['is_opensea_slug_in_blocklist'] = false; // To do: create Blocklist
+    rating['is_website_in_blocklist'] = false; // To do: create Blocklist
+
+    // Flag if Twitter found in opensea page (API or scrape)
     rating['is_twitter_found_in_opensea'] = ('twitter_username' in mentaObj.openseaData) &&
         mentaObj.openseaData.twitter_username !== null ? true : false;
 
     //// Verify cross-referenced data checks out:
+
     // Same twitter handle in Twitter API response and OpenSea API response (or opensea scrape)
     rating['is_twitter_username_match_opensea_twitter'] = twitterInOpensea === twitterUsername;
     // Same external_url (website) listed in Twitter API and OpenSea API
@@ -64,7 +69,7 @@ async function confidenceFlags(mentaObj, edgecaseList) {
         ((linkInTwitter === websiteLink) ||
             ((slugInTwitterLink !== null) && (slugInTwitterLink === mentaObj.baseSlug)));
 
-    // Same slug and twitter handles from APIs are also on website
+    // Same twitter handle from API is also on website
     if ('twitter_username_array' in mentaObj.websiteData)
         var twitterUsernamesInWebsite = mentaObj['websiteData']['twitter_username_array'];
     else
@@ -78,6 +83,7 @@ async function confidenceFlags(mentaObj, edgecaseList) {
     else
         rating['is_twitter_username_in_website'] = null;
 
+    // Same slug from API is also on website
     if ('opensea_slug_array' in mentaObj.websiteData)
         var slugsInWebsite = mentaObj['websiteData']['opensea_slug_array'];
     else
@@ -87,14 +93,6 @@ async function confidenceFlags(mentaObj, edgecaseList) {
         rating['is_slug_in_website'] = slugsInWebsite.includes(openseaSlug) ? true : false;
     else
         rating['is_slug_in_website'] = null;
-
-    // Exception case for linktrees 
-    rating['is_twitter_link_linktree'] = linkInTwitter === "linktr.ee";
-
-    // Check if any profile in blocklist
-    rating['is_twitter_username_in_blocklist'] = false; // To do: create Blocklist
-    rating['is_opensea_slug_in_blocklist'] = false; // To do: create Blocklist
-    rating['is_website_in_blocklist'] = false; // To do: create Blocklist
 
     return rating;
 

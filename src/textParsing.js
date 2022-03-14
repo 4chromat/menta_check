@@ -54,11 +54,12 @@ function getTwitterUsername(twitterURLs) {
 }
 
 function getOpenseaSlug(openseaURLs) {
+    // OpenSea slugs are case sensitive
     var openseaSlugs = []
     for (var urls in openseaURLs) {
         if (openseaURLs[urls]) {
             var a = openseaURLs[urls].split("/");
-            openseaSlugs.push(a[4].split("?")[0].toLowerCase())
+            openseaSlugs.push(a[4].split("?")[0]())
         }
     }
     return openseaSlugs;
