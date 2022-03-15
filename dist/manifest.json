@@ -16,5 +16,8 @@
     "action": {
         "default_popup": "index.html",
         "default_icon": "img/favicon_io/favicon_128.png"
+    },
+    "icons": {
+        "128": "img/favicon_io/favicon_128.png"
     }
 }

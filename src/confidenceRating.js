@@ -19,6 +19,7 @@ async function confidenceFlags(mentaObj, edgecaseList) {
 
     // OpenSea slugs are case sensitive
     const openseaSlug = 'slug' in mentaObj['openseaData'] ? mentaObj['openseaData']['slug'] : null;
+    console.log("break")
     const slugInTwitterLink = twitterUsername && mentaObj['twitterData']['expanded_url'] ? mentaObj['twitterData']['expanded_url'].split("opensea.io/collection/")[1] : null;
     const isOpenseaSafelist = (mentaObj['openseaData']['safelist_request_status'] === 'verified') ||
         (mentaObj['openseaData']['safelist_request_status'] === 'approved');

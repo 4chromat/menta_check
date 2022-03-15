@@ -69,16 +69,17 @@ async function mainProcess(url, openseaURLs, twitterURLs, edgecaseList) {
         rootDomain = twitterData.expanded_url ? standarizeUrl(twitterData.expanded_url) : null;
 
     } else if (isOpenseaURL(url)) {
-
+      
         frontTabCategory = 'opensea';
         baseSlug = getOpenseaSlug([url])[0];
+      
         // SERVER FUNCTION - check if baseSlug is already in Firebase
         var result = await checkWhiteListFunction(baseSlug, "base_slug");
-
+       
         if (result != "NOTHING") {
             // drop console print before updating on Chrome Store
             // console.log('Allowlist result via baseOpenSea is', result)
-            // console.log("checkWhiteListFunction pass")
+            //console.log("checkWhiteListFunction pass")
 
             mentaAction = "allowlist";
             baseTwitter = result.result.baseTwitter;
