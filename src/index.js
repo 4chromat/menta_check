@@ -66,6 +66,12 @@ async function mainProcess(url, openseaURLs, twitterURLs, edgecaseList) {
         }
 
         twitterData = await transformTwitterResponse(baseTwitter);
+
+        if ('errors' in twitterData || baseTwitter == 'home') {
+            rateEdgeCase('twitterNotInProfile', edgecaseList, url);
+            return;
+        }
+
         rootDomain = twitterData.expanded_url ? standarizeUrl(twitterData.expanded_url) : null;
 
     } else if (isOpenseaURL(url)) {
@@ -228,10 +234,10 @@ async function mainProcess(url, openseaURLs, twitterURLs, edgecaseList) {
     }
 
     // drop console print before updating on Chrome Store
-    console.log('Base Website: ' + baseWebsite);
-    console.log('Base Twitter: ' + baseTwitter);
-    console.log('Base OpenSea: ' + baseSlug);
-    console.log('mentaObj is:', mentaObj);
+    // console.log('Base Website: ' + baseWebsite);
+    // console.log('Base Twitter: ' + baseTwitter);
+    // console.log('Base OpenSea: ' + baseSlug);
+    // console.log('mentaObj is:', mentaObj);
 
     console.log("Call confidenceRating... ");
 
