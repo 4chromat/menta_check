@@ -175,7 +175,7 @@ async function mainProcess(url, openseaURLs, twitterURLs, edgecaseList) {
     if (twitterData === null) {
         if (!baseTwitter) {
             if (openseaData && openseaData.twitter_username)
-                baseTwitter = openseaData.twitter_username;
+                baseTwitter = openseaData.twitter_username.toLowerCase();
             else if (twitterUsernames && twitterUsernames.length > 0)
                 baseTwitter = twitterUsernames[0];
         }
@@ -228,10 +228,10 @@ async function mainProcess(url, openseaURLs, twitterURLs, edgecaseList) {
     }
 
     // drop console print before updating on Chrome Store
-    // console.log('Base Website: ' + baseWebsite);
-    // console.log('Base Twitter: ' + baseTwitter);
-    // console.log('Base OpenSea: ' + baseSlug);
-    // console.log('mentaObj is:', mentaObj);
+    console.log('Base Website: ' + baseWebsite);
+    console.log('Base Twitter: ' + baseTwitter);
+    console.log('Base OpenSea: ' + baseSlug);
+    console.log('mentaObj is:', mentaObj);
 
     console.log("Call confidenceRating... ");
 
