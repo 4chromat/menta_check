@@ -33,6 +33,9 @@ function setResults(dataObj, mentaAction) {
     let twitterMWeb = dataObj.is_twitter_link_same_website && (dataObj.is_twitter_username_in_website !== false);
     let openSeaMWeb = dataObj.is_opensea_link_same_website && (dataObj.is_slug_in_website !== false);
 
+    // Flag when Twitter link maps to Discord, linktree, ...
+    let twitterLinksOther = dataObj.is_twitter_link_discord || dataObj.is_twitter_link_linktree;
+ 
     let linkW = dataObj.baseWebsite;
     let linkT = "https://www.twitter.com/" + dataObj.baseTwitter;
     let linkO = "https://opensea.io/collection/" + dataObj.baseSlug;
@@ -96,7 +99,7 @@ function setResults(dataObj, mentaAction) {
     // setting combined data with Twitter
     if (twitterMWeb)
         resultList.appendChild(createListDiv("Twitter-Website match", "good"));
-    else if (twitterF)
+    else if (twitterF && !twitterLinksOther)
         resultList.appendChild(createListDiv("Twitter-Website misatch", "bad"));
 
     // if in website url

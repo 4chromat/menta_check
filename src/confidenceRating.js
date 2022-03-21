@@ -19,7 +19,6 @@ async function confidenceFlags(mentaObj, edgecaseList) {
 
     // OpenSea slugs are case sensitive
     const openseaSlug = 'slug' in mentaObj['openseaData'] ? mentaObj['openseaData']['slug'] : null;
-    console.log("break")
     const slugInTwitterLink = twitterUsername && mentaObj['twitterData']['expanded_url'] ? mentaObj['twitterData']['expanded_url'].split("opensea.io/collection/")[1] : null;
     const isOpenseaSafelist = (mentaObj['openseaData']['safelist_request_status'] === 'verified') ||
         (mentaObj['openseaData']['safelist_request_status'] === 'approved');
@@ -47,6 +46,9 @@ async function confidenceFlags(mentaObj, edgecaseList) {
 
     // Exception case for linktrees. TO DO: Scrape link tree
     rating['is_twitter_link_linktree'] = linkInTwitter === "linktr.ee";
+
+    // Exception case for discord
+    rating['is_twitter_link_discord'] = linkInTwitter === "discord.gg";
 
     // Check if any profile in blocklist
     rating['is_twitter_username_in_blocklist'] = false; // To do: create Blocklist
@@ -168,7 +170,9 @@ async function confidenceRating(mentaObj, edgecaseList) {
             rating['is_opensea_link_same_website'] &&
             rating['is_twitter_found_in_opensea'] &&
             rating['is_slug_in_website'] !== false &&
-            (rating['is_twitter_link_same_website'] || rating['is_twitter_link_linktree']))
+            (rating['is_twitter_link_same_website'] || 
+            rating['is_twitter_link_linktree'] || 
+            rating['is_twitter_link_discord']))
     ) {
 
         rating['rate'] = 'B';

@@ -69,13 +69,13 @@ async function mainProcess(url, openseaURLs, twitterURLs, edgecaseList) {
         rootDomain = twitterData.expanded_url ? standarizeUrl(twitterData.expanded_url) : null;
 
     } else if (isOpenseaURL(url)) {
-      
+
         frontTabCategory = 'opensea';
         baseSlug = getOpenseaSlug([url])[0];
-      
+
         // SERVER FUNCTION - check if baseSlug is already in Firebase
         var result = await checkWhiteListFunction(baseSlug, "base_slug");
-       
+
         if (result != "NOTHING") {
             // drop console print before updating on Chrome Store
             // console.log('Allowlist result via baseOpenSea is', result)
@@ -108,7 +108,7 @@ async function mainProcess(url, openseaURLs, twitterURLs, edgecaseList) {
         frontTabCategory = 'menta';
         rateEdgeCase('checkMentaSite', edgecaseList, url);
         return;
-
+        // TO DO: Add exception for "chrome-extension" sites
     } else if (frontTabCategory === 'uniqueUrl') {
         // If front tab is a unique url scrape Twitter and OpenSea handles from it
 
@@ -164,8 +164,8 @@ async function mainProcess(url, openseaURLs, twitterURLs, edgecaseList) {
                 openseaSlugs = getOpenseaSlug(openseaURLsWeb);
                 twitterUsernames = getTwitterUsername(twitterURLsWeb);
 
-            // } else {
-            //     console.log('No Twitter or OpenSea profiles found');
+                // } else {
+                //     console.log('No Twitter or OpenSea profiles found');
             }
         }
 
@@ -197,7 +197,7 @@ async function mainProcess(url, openseaURLs, twitterURLs, edgecaseList) {
     // OpenSea is taken from website or Twitter.
     if (frontTabCategory != 'opensea' && baseSlug &&
         (!'twitter_username' in openseaData || !openseaData.twitter_username)) {
-            
+
         if (result.is_twitter_username_match_opensea_twitter)
             openseaData.twitter_username = result.baseTwitter
         else {
@@ -239,6 +239,7 @@ async function mainProcess(url, openseaURLs, twitterURLs, edgecaseList) {
 
     mentaObj['runTimeMSecs'] = `${Math.floor((Date.now() - start))}`;
 
+    // drop console print before updating on Chrome Store
     // console.log('mentaObj is:', mentaObj);
 
     setMainResults(resultFinal, mentaObj, mentaAction)

@@ -162,6 +162,9 @@ async function transformTwitterResponse(username) {
                 data['expanded_url'] = null;
             }
 
+            // Collect links in bio for later, need to collect location of t.co links
+            // data['entities']['description']
+
             data['followers_count'] = data['public_metrics']['followers_count'];
             data['tweet_count'] = data['public_metrics']['tweet_count'];
 
