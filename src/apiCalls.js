@@ -95,10 +95,14 @@ const openseaEndpointURL = "https://api.opensea.io/api/v1/collection/";
 const openseaAttributesArray = [
     'created_date',
     'description',
+    'dev_seller_fee_basis_points',
+    'discord_url',
     'external_url',
     'instagram_username',
     'is_subject_to_whitelist',
     'name',
+    'payout_address',
+    'primary_asset_contracts',
     'safelist_request_status',
     'slug',
     'twitter_username'
@@ -209,7 +213,6 @@ async function transformOpenseaResponse(collectionName) {
             const response = await getOpenseaRequest(collectionName);
 
             let data = {};
-
             for (var v of openseaAttributesArray) {
                 data[v] = response['collection'][v];
             }

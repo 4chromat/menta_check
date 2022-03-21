@@ -39,6 +39,7 @@ function setResults(dataObj, mentaAction) {
     let linkW = dataObj.baseWebsite;
     let linkT = "https://www.twitter.com/" + dataObj.baseTwitter;
     let linkO = "https://opensea.io/collection/" + dataObj.baseSlug;
+    let linkD = dataObj.discordUrl;
 
 
     // Check for known edge cases. TO do: move to confidenceRating()
@@ -92,6 +93,10 @@ function setResults(dataObj, mentaAction) {
     else
         resultList.appendChild(createListDiv("OpenSea profile missing", "na", ""))
 
+    // Setting other profiles found
+    if (linkD)
+        resultList.appendChild(createListDiv("Discord found", "good", linkD))
+
     // setting combined data with Open Sea
     if (openseaF && twitterF) {
         if (openSeaTwitterM)
@@ -132,6 +137,7 @@ function setResults(dataObj, mentaAction) {
         var temp = dataObj.followersCount.toLocaleString(undefined, { maximumFractionDigits: 0 })
         resultList.appendChild(createListDiv(`Followers count: ${temp}`, "twitter"));
     }
+
 
     return;
 }
