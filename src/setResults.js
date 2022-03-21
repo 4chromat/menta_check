@@ -225,7 +225,7 @@ function setMainResults(result, mentaObj, mentaAction) {
     } else if (mentaAction == "edgecase") {
         // console.log(result);  // drop console print before updating on Chrome Store
         setResults(result.result, mentaAction)
-        rate = result.rate;
+        rate = result.result.rate;
         frontTab = mentaObj.frontTab;
     }
 
@@ -234,6 +234,8 @@ function setMainResults(result, mentaObj, mentaAction) {
         action: mentaAction,
         rate: rate
     }
+
+    // console.log("bInfo: ", mentaObj)  // drop console print before updating on Chrome Store
 
     addLogFunction(bInfo)
 }

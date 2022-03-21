@@ -10,15 +10,20 @@ import { isTwitterURL, isOpenseaURL } from './textParsing.js';
     console.log("Clicked extension");
     let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
-    chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        function: getAllURLCurTab
-    }, (injectionResults) => {
-        let openseaURLs = injectionResults[0].result[0];
-        let twitterURLs = injectionResults[0].result[1];
-        let edgecaseList = injectionResults[0].result[2];
-        mainProcess(tab.url, openseaURLs, twitterURLs, edgecaseList);
-    });
+    if (tab.url.indexOf("https://chrome") > -1) {
+        rateEdgeCase('chromeUrl', [], tab.url);
+
+    } else {
+        chrome.scripting.executeScript({
+            target: { tabId: tab.id },
+            function: getAllURLCurTab
+        }, (injectionResults) => {
+            let openseaURLs = injectionResults[0].result[0];
+            let twitterURLs = injectionResults[0].result[1];
+            let edgecaseList = injectionResults[0].result[2];
+            mainProcess(tab.url, openseaURLs, twitterURLs, edgecaseList);
+        });
+    }
 })();
 
 
@@ -44,6 +49,8 @@ async function mainProcess(url, openseaURLs, twitterURLs, edgecaseList) {
     console.log("Calling APIs...");
     var mentaAction = "mentalog";
     // If front tab is Twitter/OpenSea profile grab basewebsite from it
+
+
     if (isTwitterURL(url)) {
 
         frontTabCategory = 'twitter';

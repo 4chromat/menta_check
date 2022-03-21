@@ -38,9 +38,9 @@ async function addLogFunction(info) {
     const addLogFuncUrl = "https://us-central1-menta-check.cloudfunctions.net/addEventLog";
     try {
         const res = await axios.post(addLogFuncUrl, { data: { dbinfo: info } });
-
+        // console.log(res)  // drop console print before updating on Chrome Store
+        
         if (res.data) {
-            // console.log(res.data)  // drop console print before updating on Chrome Store
             return res.data;
         } else {
             throw new Error('Unsuccessful addLog request');
