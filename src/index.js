@@ -66,6 +66,12 @@ async function mainProcess(url, openseaURLs, twitterURLs, edgecaseList) {
         }
 
         twitterData = await transformTwitterResponse(baseTwitter);
+
+        if ('errors' in twitterData || baseTwitter == 'home') {
+            rateEdgeCase('twitterNotInProfile', edgecaseList, url);
+            return;
+        }
+
         rootDomain = twitterData.expanded_url ? standarizeUrl(twitterData.expanded_url) : null;
 
     } else if (isOpenseaURL(url)) {
@@ -175,7 +181,7 @@ async function mainProcess(url, openseaURLs, twitterURLs, edgecaseList) {
     if (twitterData === null) {
         if (!baseTwitter) {
             if (openseaData && openseaData.twitter_username)
-                baseTwitter = openseaData.twitter_username;
+                baseTwitter = openseaData.twitter_username.toLowerCase();
             else if (twitterUsernames && twitterUsernames.length > 0)
                 baseTwitter = twitterUsernames[0];
         }

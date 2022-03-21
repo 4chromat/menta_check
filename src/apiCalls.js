@@ -151,25 +151,32 @@ async function transformTwitterResponse(username) {
         if (username) {
 
             const response = await getTwitterRequest(username);
-            const data = response['data'][0];
 
-            // The website listed in Twitter could also be in the bio text
-            if ('url' in data['entities']) {
-                data['expanded_url'] = data['entities']['url']['urls'][0]['expanded_url'];
-            } else if ('urls' in data['entities']['description']) {
-                data['expanded_url'] = data['entities']['description']['urls'][0]['expanded_url'];
-            } else {
-                data['expanded_url'] = null;
+            if ('errors' in response) {
+                return response;
             }
 
-            // Collect links in bio for later, need to collect location of t.co links
+            const data = response['data'][0];
+
+            if ('entities' in data) {
+                // The website listed in Twitter could also be in the bio text
+                            // Collect links in bio for later, need to collect location of t.co links
             // data['entities']['description']
+            
+                if ('url' in data['entities']) {
+                    data['expanded_url'] = data['entities']['url']['urls'][0]['expanded_url'];
+                } else if ('urls' in data['entities']['description']) {
+                    data['expanded_url'] = data['entities']['description']['urls'][0]['expanded_url'];
+                } else {
+                    data['expanded_url'] = null;
+                }
 
-            data['followers_count'] = data['public_metrics']['followers_count'];
-            data['tweet_count'] = data['public_metrics']['tweet_count'];
+                data['followers_count'] = data['public_metrics']['followers_count'];
+                data['tweet_count'] = data['public_metrics']['tweet_count'];
 
-            delete data['entities'];
-            delete data['public_metrics'];
+                delete data['entities'];
+                delete data['public_metrics'];
+            }
 
             data['status'] = 'completed';
 
@@ -226,7 +233,7 @@ async function transformOpenseaResponse(collectionName) {
             // // drop console print before updating on Chrome Store
             // console.log('OpenSea response is', response)
             // console.log('OpenSea data is', data)
-            
+
             return data;
 
         } else {

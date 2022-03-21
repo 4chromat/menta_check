@@ -50,6 +50,10 @@ function setResults(dataObj, mentaAction) {
             logo.src = "/img/logo_q.svg"
             mssg = "During Beta, Menta only scores 'collection' pages in OpenSea."
 
+        } else if (dataObj.edgecaseList.includes('twitterNotInProfile')) {
+            logo.src = "/img/logo_q.svg"
+            mssg = "This ain't a Twitter profile page?"
+
         } else if (!openseaF && dataObj.edgecaseList.includes('solanaLinkFound')) {
             // To do: log this as edgecase, rn it goes to mentalog rate C
             logo.src = "/img/logo_q.svg"
@@ -99,7 +103,7 @@ function setResults(dataObj, mentaAction) {
     // setting combined data with Twitter
     if (twitterMWeb)
         resultList.appendChild(createListDiv("Twitter-Website match", "good"));
-    else if (twitterF && !twitterLinksOther)
+    else if (twitterF && websiteF && !twitterLinksOther)
         resultList.appendChild(createListDiv("Twitter-Website misatch", "bad"));
 
     // if in website url

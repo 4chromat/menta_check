@@ -114,8 +114,10 @@ async function confidenceRating(mentaObj, edgecaseList) {
     // console.log('mentaObj in confidenceRating is:', mentaObj)
 
     if ( // OpenSea and Twitter not found, then rate NA
-        !rating['is_twitter_found'] &&
-        !rating['is_opensea_found']
+        (!rating['is_twitter_found'] &&
+            !rating['is_opensea_found']) ||
+        (!rating['is_opensea_found'] &&
+            !rating['is_website_found'])
     ) {
 
         rating['rate'] = 'NA';

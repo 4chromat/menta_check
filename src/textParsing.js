@@ -47,8 +47,8 @@ function getTwitterUsername(twitterURLs) {
     for (var urls in twitterURLs) {
         if (twitterURLs[urls]) {
             var a = twitterURLs[urls].split("/");
-            if(a.length >=3) {
-                twitterUsernames.push(a[3].toLowerCase())
+            if(a.length >=4) {
+                twitterUsernames.push(a[3].split("?")[0].toLowerCase())
             }
         }
     }
@@ -60,14 +60,10 @@ function getOpenseaSlug(openseaURLs) {
     var openseaSlugs = []
     for (var urls in openseaURLs) {
         if (openseaURLs[urls]) {
-           
             var a = openseaURLs[urls].split("/");
-            if(a.length >= 4) {
+            if(a.length >= 5) {
                 openseaSlugs.push(a[4].split("?")[0])
-            } else {
-                console.log(a.length)
             }
-            //openseaSlugs.push(a[4].split("?")[0]())
         }
     }
     
