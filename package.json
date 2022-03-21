@@ -12,7 +12,7 @@
     "chrome extension",
     "covid tracker"
   ],
-  "author": "Menta Check",
+  "author": "Check Menta",
   "devDependencies": {
     "dotenv-webpack": "^7.0.3",
     "webpack": "^4.43.0",
