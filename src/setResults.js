@@ -1,4 +1,4 @@
-import { addMentaObjFunction, addLogFunction } from './cloudFunCalls'
+import { addMentaObjFunction, addLogFunction, addReportFunction } from './cloudFunCalls'
 
 //-----------------------------------------------
 // UI FUNCTIONS
@@ -35,7 +35,8 @@ function setResults(dataObj, mentaAction) {
 
     // Flag when Twitter link maps to Discord, linktree, ...
     let twitterLinksOther = dataObj.is_twitter_link_discord || dataObj.is_twitter_link_linktree;
- 
+
+    let frontTab = dataObj.frontTab;
     let linkW = dataObj.baseWebsite;
     let linkT = "https://www.twitter.com/" + dataObj.baseTwitter;
     let linkO = "https://opensea.io/collection/" + dataObj.baseSlug;
@@ -138,6 +139,7 @@ function setResults(dataObj, mentaAction) {
         resultList.appendChild(createListDiv(`Followers count: ${temp}`, "twitter"));
     }
 
+    resultList.appendChild(createButton(frontTab, dataObj));
 
     return;
 }
@@ -189,6 +191,25 @@ function createListDiv(info, iconStatus, link) {
         }
     }
     return content
+}
+
+function createButton(frontTab, dataObj) {
+    let button = document.createElement("button");
+    button.innerHTML = "Report a problem";
+    button.title = "We will double check the results for this page.  " +
+        "You can leave us additional comments at hello@checkmenta.com."
+    button.addEventListener('click', () => {
+        const rInfo = {
+            front_tab: frontTab,
+            description: null,
+            dataObj: dataObj,
+            mentaAction: 'report'
+        }
+        console.log('PING 0')
+        addReportFunction(rInfo)
+        button.innerHTML = "Thank you!";
+    })
+    return button;
 }
 
 function setMainResults(result, mentaObj, mentaAction) {

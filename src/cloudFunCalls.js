@@ -49,4 +49,21 @@ async function addLogFunction(info) {
         console.log(error)
     }
 }
-export { checkWhiteListFunction, addMentaObjFunction, addLogFunction }
+
+async function addReportFunction(info) {
+    const addReportFuncUrl = "https://us-central1-menta-check.cloudfunctions.net/addReport";
+    try {
+        const res = await axios.post(addReportFuncUrl, { data: { dbinfo: info } });
+        // console.log(res)  // drop console print before updating on Chrome Store
+        
+        if (res.data) {
+            return res.data;
+        } else {
+            throw new Error('Unsuccessful addReport request');
+        }
+    } catch (error) {
+        console.log(error)
+    }
+}
+
+export { checkWhiteListFunction, addMentaObjFunction, addLogFunction, addReportFunction }

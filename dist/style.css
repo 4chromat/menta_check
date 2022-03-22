@@ -1,23 +1,15 @@
 html {
     font-family: sans-serif;
-    /* 1 */
     -ms-text-size-adjust: 100%;
-    /* 2 */
     -webkit-text-size-adjust: 100%;
-    /* 2 B5EEB1 */
 }
 
 .mainBody {
-    /* width: 20em; */
     width: 225px;
     font-size: 12.5px;
 }
 
-
 /* ------------------------------------------------- */
-
-
-/* title + init button */
 
 .title {
     text-align: center;
@@ -33,30 +25,37 @@ html {
     display: inline-block;
 }
 
+/* ------------------------------------------------- */
+
 button {
     height: 30px;
-    width: 150px;
     outline: none;
-    margin: 10px;
+    margin-top: 20px;
+    width:70%;
+    margin-left:15%;
+    margin-right:15%;
     border: none;
-    border-radius: 2px;
+    border-radius: 15px;
     cursor: pointer;
-    color: #FF8080;
+    color: #ee1d24;
 }
 
 button:hover {
-    background-color: #A8F4C9;
+    background-color: #4eb01a;
     color: white;
 }
 
 button:active {
-    background-color: #CCD0CB;
-    color: #FF8080;
+    background-color: #4eb01a;
+    color: #ee1d24;
 }
 
+button:focus {
+    background-color: #4eb01a;
+    color: white;
+}
 
 /* ------------------------------------------------- */
-
 
 /* list result  */
 .default-list {
@@ -93,17 +92,14 @@ button:active {
 }
 
 .icon-good {
-    /* background-image: url("chrome-extension://__MSG_@@extension_id__/img/status--good.svg"); */
     background-image: url("./img/status--good.svg");
 }
 
 .icon-bad {
-    /* background-image: url("chrome-extension://__MSG_@@extension_id__/img/status--good.svg"); */
     background-image: url("./img/status--bad.svg");
 }
 
 .icon-ver {
-    /* background-image: url("chrome-extension://__MSG_@@extension_id__/img/status--good.svg"); */
     background-image: url("./img/status--verified.svg");
 }
 
@@ -123,17 +119,16 @@ button:active {
     background-image: url("./img/opensea.svg");
 }
 
-
 /* unvisited link */
 a {
-    color: black;
+    color: rgb(22, 22, 22);
     text-decoration: none;
     padding: 7px 0;
 }
 
 /* mouse over link */
 a:hover {
-    color: rgb(48, 150, 48);
+    color: #4eb01a;
     font-weight: bold;
 }
 
@@ -143,6 +138,6 @@ a:hover+div {
 
 /* selected link */
 a:active {
-    color: rgb(19, 121, 19);
+    color: #4eb01a;
     font-weight: bold;
 }

@@ -158,3 +158,34 @@ exports.addEventLog = functions.https.onRequest(async (request, response) => {
         response.send("Error adding eventlog");
     }
 });
+
+// Cloud function to log user reports
+exports.addReport = functions.https.onRequest(async (request, response) => {
+    // console.log("addReport")
+    let dbinfo = request.body.data.dbinfo
+
+    let time = Date.now()
+    var database = admin.database();
+
+    try {
+        // first check if domain in allowlist:
+        var logRef = await database.ref("reports").once('value');
+        const count = logRef.numChildren() ? logRef.numChildren() : 0;
+        const info = {
+            id: count,
+            timestamp: time,
+            front_tab: dbinfo.front_tab,
+            description: dbinfo.description,
+            dataObj: dbinfo.dataObj, 
+            mentaAction: dbinfo.mentaAction
+        }
+        const logAddRef = database.ref("reports/" + count)
+        logAddRef.update(info);
+        // console.log("done adding eventlog")
+
+        response.send("Done!");
+    }
+    catch {
+        response.send("Error adding report");
+    }
+});

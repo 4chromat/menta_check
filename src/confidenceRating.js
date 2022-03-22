@@ -23,6 +23,7 @@ async function confidenceFlags(mentaObj, edgecaseList) {
     const isOpenseaSafelist = (mentaObj['openseaData']['safelist_request_status'] === 'verified') ||
         (mentaObj['openseaData']['safelist_request_status'] === 'approved');
 
+    rating['frontTab'] = mentaObj.frontTab;
     rating['baseWebsite'] = mentaObj.baseWebsite;
     rating['baseTwitter'] = mentaObj.baseTwitter;
     rating['baseSlug'] = mentaObj.baseSlug;
