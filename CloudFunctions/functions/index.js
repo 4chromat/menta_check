@@ -181,7 +181,6 @@ exports.addReport = functions.https.onRequest(async (request, response) => {
         }
         const logAddRef = database.ref("reports/" + count)
         logAddRef.update(info);
-        // console.log("done adding eventlog")
 
         response.send("Done!");
     }
