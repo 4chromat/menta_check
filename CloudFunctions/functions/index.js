@@ -43,26 +43,27 @@ exports.checkWhiteList = functions.https.onRequest(async (request, response) => 
         }
     }
     // sencond check if domain in curated:
-    var curateRef = await database.ref("curated").once('value');
-    if (curateRef.numChildren() > 0) {
-        if (match == "root_domain") {
-            mentaSnapshot = await database.ref('curated').orderByChild('root_domain').equalTo(root_domain).once('value');
-        }
-        if (match == "base_slug") {
-            mentaSnapshot = await database.ref('curated').orderByChild('base_slug').equalTo(root_domain).once('value');
-        }
-        if (match == "base_twitter") {
-            mentaSnapshot = await database.ref('curated').orderByChild('base_twitter').equalTo(root_domain).once('value');
-        }
-        if (mentaSnapshot != null && mentaSnapshot.val() != null) {
-            mentaSnapshot.forEach(function (data) {
-                var id = data.val().id;
-                // console.log("Result curated " + id)
-                var result = data.val().result.rating;
-                response.json({ result: result });
-            });
-        }
-    }
+    // var curateRef = await database.ref("curated").once('value');
+    // if (curateRef.numChildren() > 0) {
+    //     if (match == "root_domain") {
+    //         mentaSnapshot = await database.ref('curated').orderByChild('root_domain').equalTo(root_domain).once('value');
+    //     }
+    //     if (match == "base_slug") {
+    //         mentaSnapshot = await database.ref('curated').orderByChild('base_slug').equalTo(root_domain).once('value');
+    //     }
+    //     if (match == "base_twitter") {
+    //         mentaSnapshot = await database.ref('curated').orderByChild('base_twitter').equalTo(root_domain).once('value');
+    //     }
+    //     if (mentaSnapshot != null && mentaSnapshot.val() != null) {
+    //         mentaSnapshot.forEach(function (data) {
+    //             var id = data.val().id;
+    //             // console.log("Result curated " + id)
+    //             var result = data.val().result.rating;
+    //             response.json({ result: result });
+    //         });
+    //     }
+    // }
+    
     // console.log("Result nothing ")
 
     // Send back a message that we've successfully written the message
