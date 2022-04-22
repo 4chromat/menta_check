@@ -50,6 +50,22 @@ async function addLogFunction(info) {
     }
 }
 
+async function addFlagFunction(info) {
+    const addFlagFuncUrl = "https://us-central1-menta-check.cloudfunctions.net/addFlag";
+    try {
+        const res = await axios.post(addFlagFuncUrl, { data: { dbinfo: info } });
+        // console.log(res)  // drop console print before updating on Chrome Store
+        
+        if (res.data) {
+            return res.data;
+        } else {
+            throw new Error('Unsuccessful addFlag request');
+        }
+    } catch (error) {
+        console.log(error)
+    }
+}
+
 async function addReportFunction(info) {
     const addReportFuncUrl = "https://us-central1-menta-check.cloudfunctions.net/addReport";
     try {
@@ -66,4 +82,4 @@ async function addReportFunction(info) {
     }
 }
 
-export { checkWhiteListFunction, addMentaObjFunction, addLogFunction, addReportFunction }
+export { checkWhiteListFunction, addMentaObjFunction, addLogFunction, addReportFunction, addFlagFunction }

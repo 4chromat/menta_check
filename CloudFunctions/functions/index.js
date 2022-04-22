@@ -12,16 +12,14 @@ admin.initializeApp({
 // Cloud Function for checking whitelist in DB 
 exports.checkWhiteList = functions.https.onRequest(async (request, response) => {
     // console.log("checkWhiteList")
-    let root_domain = request.body.data.root_domain
-    let match = request.body.data.match
-
-    //let { body: { root_domain, match } } = request;
-    // console.log(root_domain)
+    let root_domain = request.body.data.root_domain;
+    let match = request.body.data.match;
     var mentaSnapshot = null;
     var database = admin.database();
-
+    
     // first check if domain in allowlist:
     var allowLRef = await database.ref("allowlist").once('value');
+
     if (allowLRef.numChildren() > 0) {
         if (match == "root_domain") {
             mentaSnapshot = await database.ref('allowlist').orderByChild('root_domain').equalTo(root_domain).once('value');
@@ -42,6 +40,7 @@ exports.checkWhiteList = functions.https.onRequest(async (request, response) => 
             return;
         }
     }
+    
     // sencond check if domain in curated:
     // var curateRef = await database.ref("curated").once('value');
     // if (curateRef.numChildren() > 0) {
@@ -82,7 +81,6 @@ exports.addMetaObj = functions.https.onRequest(async (request, response) => {
     var database = admin.database();
 
     try {
-        // first check if domain in allowlist:
         var mentaobjRef = await database.ref("mentalog").once('value');
         const count = mentaobjRef.numChildren() ? mentaobjRef.numChildren() : 0;
         const info = {
@@ -139,7 +137,6 @@ exports.addEventLog = functions.https.onRequest(async (request, response) => {
     var database = admin.database();
 
     try {
-        // first check if domain in allowlist:
         var logRef = await database.ref("eventlog").once('value');
         const count = logRef.numChildren() ? logRef.numChildren() : 0;
         const info = {
@@ -160,6 +157,38 @@ exports.addEventLog = functions.https.onRequest(async (request, response) => {
     }
 });
 
+
+// // Cloud function to log user reports
+exports.addFlag = functions.https.onRequest(async (request, response) => {
+    // console.log("addFlag")
+    let dbinfo = request.body.data.dbinfo
+
+    let time = Date.now()
+    var database = admin.database();
+
+    try {
+        var logRef = await database.ref("flags").once('value');
+        const count = logRef.numChildren() ? logRef.numChildren() : 0;
+        const info = {
+            id: count,
+            timestamp: time,
+            front_tab: dbinfo.front_tab,
+            description: dbinfo.description,
+            dataObj: dbinfo.dataObj, 
+            mentaAction: dbinfo.mentaAction
+        }
+        const logAddRef = database.ref("flags/" + count)
+        logAddRef.update(info);
+
+        response.send("Done!");
+    }
+    catch {
+        response.send("Error adding flag");
+    }
+});
+
+
+
 // Cloud function to log user reports
 exports.addReport = functions.https.onRequest(async (request, response) => {
     // console.log("addReport")
@@ -169,7 +198,7 @@ exports.addReport = functions.https.onRequest(async (request, response) => {
     var database = admin.database();
 
     try {
-        // first check if domain in allowlist:
+        // first check if domain in reports:
         var logRef = await database.ref("reports").once('value');
         const count = logRef.numChildren() ? logRef.numChildren() : 0;
         const info = {
