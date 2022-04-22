@@ -1,4 +1,5 @@
 import { addMentaObjFunction, addLogFunction, addReportFunction } from './cloudFunCalls'
+import { addFlagFunction } from './cloudFunCalls'
 
 //-----------------------------------------------
 // UI FUNCTIONS
@@ -139,9 +140,45 @@ function setResults(dataObj, mentaAction) {
         resultList.appendChild(createListDiv(`Followers count: ${temp}`, "twitter"));
     }
 
-    resultList.appendChild(createButton(frontTab, dataObj));
+    resultList.appendChild(createButton(frontTab, dataObj, "flag"));
+
+    resultList.appendChild(createButton(frontTab, dataObj, "report"));
 
     return;
+}
+
+
+function createButton(frontTab, dataObj, buttonAction) {
+    
+    let button = document.createElement("button");
+    
+    const bInfo = {
+        front_tab: frontTab,
+        description: null,
+        dataObj: dataObj,
+        mentaAction: buttonAction
+    }
+
+    if (buttonAction == "report") {
+        button.innerHTML = "Report a problem";
+        button.title = "We will double check the results for this page.  " +
+                       "You can leave us additional comments at hello@checkmenta.com."
+        button.addEventListener('click', () => {
+            addReportFunction(bInfo)
+            button.innerHTML = "Thank you!";
+        })
+    } else if (buttonAction == "flag") {
+        button.innerHTML = "This site looks fake";
+        button.title = "We will rate this as 'Fake' after review.  " +
+                       "Leave us additional comments at hello@checkmenta.com."
+        button.addEventListener('click', () => {
+            addFlagFunction(bInfo)
+            button.innerHTML = "Thank you!";
+        })
+    }
+
+
+    return button;
 }
 
 function setLogo(rate) {
@@ -191,25 +228,6 @@ function createListDiv(info, iconStatus, link) {
         }
     }
     return content
-}
-
-function createButton(frontTab, dataObj) {
-    let button = document.createElement("button");
-    button.innerHTML = "Report a problem";
-    button.title = "We will double check the results for this page.  " +
-        "You can leave us additional comments at hello@checkmenta.com."
-    button.addEventListener('click', () => {
-        const rInfo = {
-            front_tab: frontTab,
-            description: null,
-            dataObj: dataObj,
-            mentaAction: 'report'
-        }
-        console.log('PING 0')
-        addReportFunction(rInfo)
-        button.innerHTML = "Thank you!";
-    })
-    return button;
 }
 
 function setMainResults(result, mentaObj, mentaAction) {
