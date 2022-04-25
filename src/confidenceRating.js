@@ -27,6 +27,7 @@ async function confidenceFlags(mentaObj, edgecaseList) {
     rating['baseWebsite'] = mentaObj.baseWebsite;
     rating['baseTwitter'] = mentaObj.baseTwitter;
     rating['baseSlug'] = mentaObj.baseSlug;
+    rating['rootDomain'] = mentaObj.rootDomain;
     rating['frontTabCategory'] = mentaObj.frontTabCategory;
 
     // Set collection metadata

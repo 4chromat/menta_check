@@ -58,18 +58,24 @@ async function mainProcess(url, openseaURLs, twitterURLs, edgecaseList) {
         // SERVER FUNCTION - check if baseTwitter is already in Firebase
         // 'result' is an object that holds confidence flags, same as 'mentaObj.ratings'
         var result = await checkWhiteListFunction(baseTwitter, "base_twitter");
-        if (result != "NOTHING") {
-            // drop console print before updating on Chrome Store
-            // console.log('Allowlist result via baseTwitter is', result)
-            // console.log("checkWhiteListFunction pass")
 
-            baseSlug = result.result.baseSlug;
-            baseWebsite = result.result.baseWebsite;
-            mentaAction = "allowlist";
-            // Don't drop action to read all the result from DB yet, it may be used later for consecutive ratings
-            // //const mentaBase = { 'frontTab': url }
-            // //setMainResults(result, mentaBase, mentaAction)
-            // // return;
+        if (result != "NOTHING") {
+            if ('rate' in result.result) {
+                // drop console print before updating on Chrome Store
+                // console.log('Allowlist result via baseTwitter is', result)
+                // console.log("checkWhiteListFunction pass")
+
+                baseSlug = result.result.baseSlug;
+                baseWebsite = result.result.baseWebsite;
+                mentaAction = "allowlist";
+                // Don't drop action to read all the result from DB yet, it may be used later for consecutive ratings
+                // //const mentaBase = { 'frontTab': url }
+                // //setMainResults(result, mentaBase, mentaAction)
+                // // return;
+            } else if ('fake' in result.result) {
+                rateEdgeCase('fakeList', edgecaseList, url, result);
+                return;
+            }
         }
 
         twitterData = await transformTwitterResponse(baseTwitter);
@@ -91,17 +97,22 @@ async function mainProcess(url, openseaURLs, twitterURLs, edgecaseList) {
         var result = await checkWhiteListFunction(baseSlug, "base_slug");
 
         if (result != "NOTHING") {
-            // drop console print before updating on Chrome Store
-            // console.log('Allowlist result via baseOpenSea is', result)
-            //console.log("checkWhiteListFunctiosn pass")
-
-            mentaAction = "allowlist";
-            baseTwitter = result.result.baseTwitter;
-            baseWebsite = result.result.baseWebsite;
-            // const mentaBase = { 'frontTab': url }
-            // setMainResults(result, mentaBase, mentaAction)
-            // return;
+            if ('rate' in result.result) {
+                // drop console print before updating on Chrome Store
+                // console.log('Allowlist result via baseOpenSea is', result)
+                //console.log("checkWhiteListFunctiosn pass")
+                mentaAction = "allowlist";
+                baseTwitter = result.result.baseTwitter;
+                baseWebsite = result.result.baseWebsite;
+                // const mentaBase = { 'frontTab': url }
+                // setMainResults(result, mentaBase, mentaAction)
+                // return;
+            } else if ('fake' in result.result) {
+                rateEdgeCase('fakeList', edgecaseList, url, result);
+                return;
+            }
         }
+
         openseaData = await transformOpenseaResponse(baseSlug);
         rootDomain = openseaData.external_url ? standarizeUrl(openseaData.external_url) : null;
 
@@ -131,18 +142,25 @@ async function mainProcess(url, openseaURLs, twitterURLs, edgecaseList) {
 
         // SERVER FUNCTION - check if baseWebsite is already in Firebase
         var result = await checkWhiteListFunction(rootDomain, "root_domain");
-        if (result != "NOTHING") {
-            // drop console print before updating on Chrome Store
-            // console.log('Allowlist result via baseWebsite is', result)
-            // console.log("checkWhiteListFunction pass")
 
-            mentaAction = "allowlist";
-            baseTwitter = result.result.baseTwitter;
-            baseSlug = result.result.baseSlug;
-            // const mentaBase = { 'frontTab': url }
-            // setMainResults(result, mentaBase, mentaAction)
-            // return;
+        if (result != "NOTHING") {
+            if ('rate' in result.result) {
+                // drop console print before updating on Chrome Store
+                // console.log('Allowlist result via baseWebsite is', result)
+                // console.log("checkWhiteListFunction pass")
+
+                mentaAction = "allowlist";
+                baseTwitter = result.result.baseTwitter;
+                baseSlug = result.result.baseSlug;
+                // const mentaBase = { 'frontTab': url }
+                // setMainResults(result, mentaBase, mentaAction)
+                // return;
+            } else if ('fake' in result.result) {
+                rateEdgeCase('fakeList', edgecaseList, url, result);
+                return;
+            }
         }
+
         openseaSlugs = getOpenseaSlug(openseaURLs);
         twitterUsernames = getTwitterUsername(twitterURLs)
 
@@ -260,10 +278,20 @@ async function mainProcess(url, openseaURLs, twitterURLs, edgecaseList) {
 
 }
 
-function rateEdgeCase(edgecaseHandle, edgecaseList, url) {
+function rateEdgeCase(edgecaseHandle, edgecaseList, url, result) {
     edgecaseList.push(edgecaseHandle);
     var mentaAction = "edgecase";
-    var result = { 'result': { 'edgecaseList': edgecaseList, 'rate': 'EC' } }
+    if (!result) {
+        var result = {
+            'result': {
+                'rate': 'EC',
+                'edgecaseList': edgecaseList,
+            }
+        }
+    } else {
+        result.result.rate = 'EC';
+        result.result.edgecaseList = edgecaseList
+    }
     const mentaBase = { 'frontTab': url }
     setMainResults(result, mentaBase, mentaAction)
     return;

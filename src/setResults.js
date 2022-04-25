@@ -57,6 +57,11 @@ function setResults(dataObj, mentaAction) {
             logo.src = "/img/logo_q.svg"
             mssg = "This ain't a Twitter profile page?"
 
+        } else if (dataObj.edgecaseList.includes('fakeList')) {
+            logo.src = "/img/logo_f.svg"
+            resultList.appendChild(createListDiv("We know this site is Fake!", "warning"))
+            mssg = "You might be looking for:";
+
         } else if (!openseaF && dataObj.edgecaseList.includes('solanaLinkFound')) {
             // To do: log this as edgecase, rn it goes to mentalog rate C
             logo.src = "/img/logo_q.svg"
@@ -67,9 +72,15 @@ function setResults(dataObj, mentaAction) {
             mssg = "Contact us at hello@checkmenta.com for suggestions and feature requests!"
         }
 
+        if (dataObj.redirect_url) {
+            resultList.appendChild(createListDiv(mssg, "", ""));  
+            resultList.appendChild(createListDiv(dataObj.redirect_text, "good", dataObj.redirect_url)); 
+        }  else if (mssg !== "" && dataObj.redirect_url) {
+            resultList.appendChild(createListDiv(mssg, "", ""));          
+        }
+
         if (mssg !== "") {
-            resultList.appendChild(createListDiv(mssg, "", ""));
-            return;
+            return;        
         }
     }
 
@@ -160,6 +171,7 @@ function createButton(frontTab, dataObj, buttonAction) {
     }
 
     if (buttonAction == "report") {
+        bInfo["fixed"] = false;
         button.innerHTML = "Report a problem";
         button.title = "We will double check the results for this page.  " +
                        "You can leave us additional comments at hello@checkmenta.com."
@@ -168,6 +180,7 @@ function createButton(frontTab, dataObj, buttonAction) {
             button.innerHTML = "Thank you!";
         })
     } else if (buttonAction == "flag") {
+        bInfo["fake"] = false;
         button.innerHTML = "This site looks fake";
         button.title = "We will rate this as 'Fake' after review.  " +
                        "Leave us additional comments at hello@checkmenta.com."
@@ -176,7 +189,6 @@ function createButton(frontTab, dataObj, buttonAction) {
             button.innerHTML = "Thank you!";
         })
     }
-
 
     return button;
 }
@@ -206,6 +218,7 @@ function createListDiv(info, iconStatus, link) {
             if (iconStatus == "bad") { icon = "icon-bad"; }
             if (iconStatus == "ver") { icon = "icon-ver"; }
             if (iconStatus == "na") { icon = "icon-na"; }
+            if (iconStatus == "warning") { icon = "icon-warning"; }
             if (iconStatus == "question") { icon = "icon-question"; }
             if (iconStatus == "opensea") { icon = "icon-opensea"; }
             if (iconStatus == "twitter") { icon = "icon-twitter"; }

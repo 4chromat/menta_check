@@ -40,28 +40,29 @@ exports.checkWhiteList = functions.https.onRequest(async (request, response) => 
             return;
         }
     }
-    
-    // sencond check if domain in curated:
-    // var curateRef = await database.ref("curated").once('value');
-    // if (curateRef.numChildren() > 0) {
-    //     if (match == "root_domain") {
-    //         mentaSnapshot = await database.ref('curated').orderByChild('root_domain').equalTo(root_domain).once('value');
-    //     }
-    //     if (match == "base_slug") {
-    //         mentaSnapshot = await database.ref('curated').orderByChild('base_slug').equalTo(root_domain).once('value');
-    //     }
-    //     if (match == "base_twitter") {
-    //         mentaSnapshot = await database.ref('curated').orderByChild('base_twitter').equalTo(root_domain).once('value');
-    //     }
-    //     if (mentaSnapshot != null && mentaSnapshot.val() != null) {
-    //         mentaSnapshot.forEach(function (data) {
-    //             var id = data.val().id;
-    //             // console.log("Result curated " + id)
-    //             var result = data.val().result.rating;
-    //             response.json({ result: result });
-    //         });
-    //     }
-    // }
+
+    // second check if any is flagged and marked as fake
+    var fakeRef = await database.ref("flags").once('value');
+    if (fakeRef.numChildren() > 0) {
+        if (match == "root_domain") {
+            mentaSnapshot = await database.ref('flags').orderByChild('root_domain').equalTo(root_domain).once('value');
+        }
+        if (match == "base_slug") {
+            mentaSnapshot = await database.ref('flags').orderByChild('base_slug').equalTo(root_domain).once('value');
+        }
+        if (match == "base_twitter") {
+            mentaSnapshot = await database.ref('flags').orderByChild('base_twitter').equalTo(root_domain).once('value');
+        }
+        if (mentaSnapshot != null && mentaSnapshot.val() != null) {
+            mentaSnapshot.forEach(function (data) {
+                if (data.val().fake) {
+                    var result = data.val();
+                    response.json({ result: result });
+                    return;
+                }
+            });
+        }
+    }
     
     // console.log("Result nothing ")
 
@@ -174,9 +175,16 @@ exports.addFlag = functions.https.onRequest(async (request, response) => {
             timestamp: time,
             front_tab: dbinfo.front_tab,
             description: dbinfo.description,
+            fake: dbinfo.fake,
+            redirect_text: "",
+            redirect_url: "",
+            base_slug: dbinfo.dataObj.baseSlug,
+            base_twitter: dbinfo.dataObj.baseTwitter,
+            root_domain: dbinfo.dataObj.rootDomain, 
             dataObj: dbinfo.dataObj, 
             mentaAction: dbinfo.mentaAction
         }
+
         const logAddRef = database.ref("flags/" + count)
         logAddRef.update(info);
 
@@ -206,6 +214,7 @@ exports.addReport = functions.https.onRequest(async (request, response) => {
             timestamp: time,
             front_tab: dbinfo.front_tab,
             description: dbinfo.description,
+            fixed: dbinfo.fixed,
             dataObj: dbinfo.dataObj, 
             mentaAction: dbinfo.mentaAction
         }
