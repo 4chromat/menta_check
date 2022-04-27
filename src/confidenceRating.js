@@ -29,7 +29,8 @@ async function confidenceFlags(mentaObj, edgecaseList) {
     rating['baseSlug'] = mentaObj.baseSlug;
     rating['rootDomain'] = mentaObj.rootDomain;
     rating['frontTabCategory'] = mentaObj.frontTabCategory;
-
+    rating['flagCounter'] = mentaObj.flagCounter;
+    
     // Set collection metadata
     rating['floorPrice'] = 'floor_price' in mentaObj.openseaData ? mentaObj.openseaData.floor_price : null;
     rating['totalVolume'] = 'total_volume' in mentaObj.openseaData ? mentaObj.openseaData.total_volume : null;

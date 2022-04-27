@@ -44,6 +44,7 @@ async function mainProcess(url, openseaURLs, twitterURLs, edgecaseList) {
     var openseaSlugs = [];
     var twitterUsernames = [];
     var rootDomain = null;
+    var flagCounter = 0;
     const start = Date.now();
 
     console.log("Calling APIs...");
@@ -60,6 +61,7 @@ async function mainProcess(url, openseaURLs, twitterURLs, edgecaseList) {
         var result = await checkWhiteListFunction(baseTwitter, "base_twitter");
 
         if (result != "NOTHING") {
+
             if ('rate' in result.result) {
                 // drop console print before updating on Chrome Store
                 // console.log('Allowlist result via baseTwitter is', result)
@@ -75,6 +77,8 @@ async function mainProcess(url, openseaURLs, twitterURLs, edgecaseList) {
             } else if ('fake' in result.result) {
                 rateEdgeCase('fakeList', edgecaseList, url, result);
                 return;
+            } else if ('flagCounter' in result.result) {
+                flagCounter = result.result.flagCounter;
             }
         }
 
@@ -110,6 +114,8 @@ async function mainProcess(url, openseaURLs, twitterURLs, edgecaseList) {
             } else if ('fake' in result.result) {
                 rateEdgeCase('fakeList', edgecaseList, url, result);
                 return;
+            } else if ('flagCounter' in result.result) {
+                flagCounter = result.result.flagCounter;
             }
         }
 
@@ -158,6 +164,8 @@ async function mainProcess(url, openseaURLs, twitterURLs, edgecaseList) {
             } else if ('fake' in result.result) {
                 rateEdgeCase('fakeList', edgecaseList, url, result);
                 return;
+            } else if ('flagCounter' in result.result) {
+                flagCounter = result.result.flagCounter;
             }
         }
 
@@ -256,7 +264,8 @@ async function mainProcess(url, openseaURLs, twitterURLs, edgecaseList) {
         'twitterData': twitterData,
         'openseaData': openseaData,
         'websiteData': websiteData,
-        'rootDomain': rootDomain
+        'rootDomain': rootDomain,
+        'flagCounter': flagCounter
     }
 
     // drop console print before updating on Chrome Store

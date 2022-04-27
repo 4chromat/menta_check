@@ -75,6 +75,7 @@ function setResults(dataObj, mentaAction) {
         if (dataObj.redirect_url) {
             resultList.appendChild(createListDiv(mssg, "", ""));  
             resultList.appendChild(createListDiv(dataObj.redirect_text, "good", dataObj.redirect_url)); 
+            resultList.appendChild(createButton(frontTab, dataObj, "report"));
         }  else if (mssg !== "" && dataObj.redirect_url) {
             resultList.appendChild(createListDiv(mssg, "", ""));          
         }
@@ -151,8 +152,12 @@ function setResults(dataObj, mentaAction) {
         resultList.appendChild(createListDiv(`Followers count: ${temp}`, "twitter"));
     }
 
-    resultList.appendChild(createButton(frontTab, dataObj, "flag"));
+    if (dataObj.flagCounter > 0) {
+        var temp = dataObj.flagCounter.toLocaleString(undefined, { maximumFractionDigits: 0 })
+        resultList.appendChild(createListDiv(`Site flagged ${temp} times`, "warning"));
+    }
 
+    resultList.appendChild(createButton(frontTab, dataObj, "flag"));
     resultList.appendChild(createButton(frontTab, dataObj, "report"));
 
     return;

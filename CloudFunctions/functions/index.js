@@ -11,12 +11,12 @@ admin.initializeApp({
 
 // Cloud Function for checking whitelist in DB 
 exports.checkWhiteList = functions.https.onRequest(async (request, response) => {
-    // console.log("checkWhiteList")
+    // console.log("checkWhiteList")s
     let root_domain = request.body.data.root_domain;
     let match = request.body.data.match;
     var mentaSnapshot = null;
     var database = admin.database();
-    
+
     // first check if domain in allowlist:
     var allowLRef = await database.ref("allowlist").once('value');
 
@@ -53,17 +53,27 @@ exports.checkWhiteList = functions.https.onRequest(async (request, response) => 
         if (match == "base_twitter") {
             mentaSnapshot = await database.ref('flags').orderByChild('base_twitter').equalTo(root_domain).once('value');
         }
+        var flagCounter = 0;
         if (mentaSnapshot != null && mentaSnapshot.val() != null) {
             mentaSnapshot.forEach(function (data) {
-                if (data.val().fake) {
-                    var result = data.val();
-                    response.json({ result: result });
-                    return;
+                if (((match == "base_slug") && (data.val().dataObj.frontTabCategory == "opensea")) ||
+                    ((match == "base_twitter") && (data.val().dataObj.frontTabCategory == "twitter")) ||
+                    ((match == "root_domain") && (data.val().dataObj.frontTabCategory == "uniqueUrl"))) {
+                    if (data.val().fake) {
+                        var result = data.val();
+                        response.json({ result: result });
+                        return;
+                    } else {
+                        flagCounter += 1;
+                    }
                 }
             });
+            var result = { 'flagCounter': flagCounter };
+            response.json({ result: result });
+            return;
         }
     }
-    
+
     // console.log("Result nothing ")
 
     // Send back a message that we've successfully written the message
@@ -180,8 +190,8 @@ exports.addFlag = functions.https.onRequest(async (request, response) => {
             redirect_url: "",
             base_slug: dbinfo.dataObj.baseSlug,
             base_twitter: dbinfo.dataObj.baseTwitter,
-            root_domain: dbinfo.dataObj.rootDomain, 
-            dataObj: dbinfo.dataObj, 
+            root_domain: dbinfo.dataObj.rootDomain,
+            dataObj: dbinfo.dataObj,
             mentaAction: dbinfo.mentaAction
         }
 
@@ -215,7 +225,7 @@ exports.addReport = functions.https.onRequest(async (request, response) => {
             front_tab: dbinfo.front_tab,
             description: dbinfo.description,
             fixed: dbinfo.fixed,
-            dataObj: dbinfo.dataObj, 
+            dataObj: dbinfo.dataObj,
             mentaAction: dbinfo.mentaAction
         }
         const logAddRef = database.ref("reports/" + count)
