@@ -48,7 +48,7 @@ function setResults(dataObj, mentaAction) {
     if ('edgecaseList' in dataObj && dataObj.edgecaseList.length > 0) {
 
         var mssg = "";
-
+        // console.log('Edgecase dataObj:', dataObj)
         if (dataObj.edgecaseList.includes('openseaNotInCollection')) {
             logo.src = "/img/logo_q.svg"
             mssg = "During Beta, Menta only scores 'collection' pages in OpenSea."
@@ -65,7 +65,7 @@ function setResults(dataObj, mentaAction) {
         } else if (!openseaF && dataObj.edgecaseList.includes('solanaLinkFound')) {
             // To do: log this as edgecase, rn it goes to mentalog rate C
             logo.src = "/img/logo_q.svg"
-            mssg = "During Beta, Menta does not support Solana collections."
+            mssg = "During Beta, Menta only supports Solana collections in OpenSea."
 
         } else if (dataObj.edgecaseList.includes('checkMentaSite')) {
             logo.src = "/img/logo_aa.svg"
@@ -76,7 +76,7 @@ function setResults(dataObj, mentaAction) {
             resultList.appendChild(createListDiv(mssg, "", ""));  
             resultList.appendChild(createListDiv(dataObj.redirect_text, "good", dataObj.redirect_url)); 
             resultList.appendChild(createButton(frontTab, dataObj, "report"));
-        }  else if (mssg !== "" && dataObj.redirect_url) {
+        }  else if (mssg !== "") {
             resultList.appendChild(createListDiv(mssg, "", ""));          
         }
 
