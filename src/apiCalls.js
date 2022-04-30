@@ -90,7 +90,9 @@ async function getTwitterRequest(username) {
 // https://docs.opensea.io/reference/retrieving-a-single-collection
 // https://docs.opensea.io/reference/collection-model
 
-const openseaEndpointURL = "https://api.opensea.io/api/v1/collection/";
+const openseaEndpointUrlCollection = "https://api.opensea.io/api/v1/collection/";
+const openseaEndpointUrlAsset = "https://api.opensea.io/api/v1/asset/"
+const openseaEndpointUrlAssetParams = "/1/?include_orders=false";
 
 const openseaAttributesArray = [
     'created_date',
@@ -125,11 +127,11 @@ const openseaContractsArray = [
     'payout_address'
 ];
 
-async function getOpenseaRequest(collectionName) {
+async function getOpenseaRequestCollection(collectionName) {
     const openseaKey = getOpenseaKey()
 
     // API Request with HTTP header that adds OpenSea API key
-    const geturlParams = openseaEndpointURL + collectionName
+    const geturlParams = openseaEndpointUrlCollection + collectionName
     const res = await axios.get(geturlParams, {
         headers: {
             "X-API-KEY": `${openseaKey}`
@@ -138,11 +140,26 @@ async function getOpenseaRequest(collectionName) {
     if (res.data) {
         return res.data;
     } else {
-        throw new Error('Unsuccessful OpenSea request');
+        throw new Error('Unsuccessful OpenSea collection request');
     }
 }
 
+async function getOpenseaRequestAsset(assetAddress) {
+    const openseaKey = getOpenseaKey()
 
+    // API Request with HTTP header that adds OpenSea API key
+    const geturlParams = openseaEndpointUrlAsset + assetAddress + openseaEndpointUrlAssetParams;
+    const res = await axios.get(geturlParams, {
+        headers: {
+            "X-API-KEY": `${openseaKey}`
+        }
+    })
+    if (res.data) {
+        return res.data;
+    } else {
+        throw new Error('Unsuccessful OpenSea asset request');
+    }
+}
 
 //-----------------------------------------------
 // TRANSFORM FUNCTIONS
@@ -164,9 +181,9 @@ async function transformTwitterResponse(username) {
 
             if ('entities' in data) {
                 // The website listed in Twitter could also be in the bio text
-                            // Collect links in bio for later, need to collect location of t.co links
-            // data['entities']['description']
-            
+                // Collect links in bio for later, need to collect location of t.co links
+                // data['entities']['description']
+
                 if ('url' in data['entities']) {
                     data['expanded_url'] = data['entities']['url']['urls'][0]['expanded_url'];
                 } else if ('urls' in data['entities']['description']) {
@@ -204,13 +221,16 @@ async function transformTwitterResponse(username) {
     }
 }
 
-async function transformOpenseaResponse(collectionName) {
+async function transformOpenseaResponse(name, openseaUrlType) {
 
     try {
-
-        if (collectionName) {
-
-            const response = await getOpenseaRequest(collectionName);
+        
+        if (name) {
+            if (openseaUrlType != "asset") {
+                var response = await getOpenseaRequestCollection(name);
+            } else if (openseaUrlType == "asset") {
+                var response = await getOpenseaRequestAsset(name);
+            }
 
             let data = {};
             for (var v of openseaAttributesArray) {

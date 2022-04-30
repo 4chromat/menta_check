@@ -39,7 +39,16 @@ function isTwitterURL(url) {
 }
 
 function isOpenseaURL(url) {
-    return (url.indexOf("https://opensea.io/collection/") > -1) ? true : false
+    if (url.indexOf("https://opensea.io") > -1) {
+        if (url.indexOf("https://opensea.io/collection/") > -1)
+            return "collection";
+        else if (url.indexOf("https://opensea.io/assets/") > -1)
+            return "asset";
+        else
+            return true;
+    } else {
+        return false;
+    }
 }
 
 function getTwitterUsername(twitterURLs) {
@@ -47,7 +56,7 @@ function getTwitterUsername(twitterURLs) {
     for (var urls in twitterURLs) {
         if (twitterURLs[urls]) {
             var a = twitterURLs[urls].split("/");
-            if(a.length >=4) {
+            if (a.length >= 4) {
                 twitterUsernames.push(a[3].split("?")[0].toLowerCase())
             }
         }
@@ -61,14 +70,23 @@ function getOpenseaSlug(openseaURLs) {
     for (var urls in openseaURLs) {
         if (openseaURLs[urls]) {
             var a = openseaURLs[urls].split("/");
-            if(a.length >= 5) {
+            if (a.length >= 5) {
                 openseaSlugs.push(a[4].split("?")[0])
             }
         }
     }
-    
+
     return openseaSlugs;
 }
 
-export { getAllURLCurTab, getTwitterUsername, getOpenseaSlug }
+function getOpenseaAsset(openseaUrl) {
+    var a = openseaUrl.split("/");
+    if (a.length >= 5) {
+        return a[4].split("?")[0];
+    } else {
+        return false
+    }
+}
+
+export { getAllURLCurTab, getTwitterUsername, getOpenseaSlug, getOpenseaAsset}
 export { isTwitterURL, isOpenseaURL }

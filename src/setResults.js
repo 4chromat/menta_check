@@ -51,7 +51,7 @@ function setResults(dataObj, mentaAction) {
         // console.log('Edgecase dataObj:', dataObj)
         if (dataObj.edgecaseList.includes('openseaNotInCollection')) {
             logo.src = "/img/logo_q.svg"
-            mssg = "During Beta, Menta only scores 'collection' pages in OpenSea."
+            mssg = "During Beta, Menta only scores 'collection' and 'asset' pages in OpenSea."
 
         } else if (dataObj.edgecaseList.includes('twitterNotInProfile')) {
             logo.src = "/img/logo_q.svg"

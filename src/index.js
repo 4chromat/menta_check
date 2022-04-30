@@ -3,7 +3,7 @@ import { transformTwitterResponse, transformOpenseaResponse, transformWebsiteScr
 import { checkWhiteListFunction } from './cloudFunCalls'
 import { setMainResults } from './setResults.js';
 import { confidenceRating, standarizeUrl } from './confidenceRating.js';
-import { getAllURLCurTab, getTwitterUsername, getOpenseaSlug } from './textParsing.js';
+import { getAllURLCurTab, getTwitterUsername, getOpenseaSlug, getOpenseaAsset} from './textParsing.js';
 import { isTwitterURL, isOpenseaURL } from './textParsing.js';
 
 (async function () {
@@ -51,6 +51,7 @@ async function mainProcess(url, openseaURLs, twitterURLs, edgecaseList) {
     var mentaAction = "mentalog";
     // If front tab is Twitter/OpenSea profile grab basewebsite from it
 
+    var openseaUrlType = isOpenseaURL(url);
 
     if (isTwitterURL(url)) {
 
@@ -91,48 +92,56 @@ async function mainProcess(url, openseaURLs, twitterURLs, edgecaseList) {
 
         rootDomain = twitterData.expanded_url ? standarizeUrl(twitterData.expanded_url) : null;
 
-    } else if (isOpenseaURL(url)) {
+    } else if (openseaUrlType) {
 
         frontTabCategory = 'opensea';
-        baseSlug = getOpenseaSlug([url])[0];
+
+        if (openseaUrlType == "collection") {
+            baseSlug = getOpenseaSlug([url])[0];
+        } else if (openseaUrlType == "asset") {
+            var assetAddress = getOpenseaAsset(url);
+            openseaData = await transformOpenseaResponse(assetAddress, openseaUrlType);
+            baseSlug = openseaData["slug"];
+        } 
 
         // SERVER FUNCTION - check if baseSlug is already in Firebase
-
-        var result = await checkWhiteListFunction(baseSlug, "base_slug");
-
-        if (result != "NOTHING") {
-            if ('rate' in result.result) {
-                // drop console print before updating on Chrome Store
-                // console.log('Allowlist result via baseOpenSea is', result)
-                //console.log("checkWhiteListFunctiosn pass")
-                mentaAction = "allowlist";
-                baseTwitter = result.result.baseTwitter;
-                baseWebsite = result.result.baseWebsite;
-                // const mentaBase = { 'frontTab': url }
-                // setMainResults(result, mentaBase, mentaAction)
-                // return;
-            } else if ('fake' in result.result) {
-                rateEdgeCase('fakeList', edgecaseList, url, result);
-                return;
-            } else if ('flagCounter' in result.result) {
-                flagCounter = result.result.flagCounter;
+        if (baseSlug) {
+            var result = await checkWhiteListFunction(baseSlug, "base_slug");
+    
+            if (result != "NOTHING") {
+                if ('rate' in result.result) {
+                    // drop console print before updating on Chrome Store
+                    // console.log('Allowlist result via baseOpenSea is', result)
+                    //console.log("checkWhiteListFunctiosn pass")
+                    mentaAction = "allowlist";
+                    baseTwitter = result.result.baseTwitter;
+                    baseWebsite = result.result.baseWebsite;
+                    // const mentaBase = { 'frontTab': url }
+                    // setMainResults(result, mentaBase, mentaAction)
+                    // return;
+                } else if ('fake' in result.result) {
+                    rateEdgeCase('fakeList', edgecaseList, url, result);
+                    return;
+                } else if ('flagCounter' in result.result) {
+                    flagCounter = result.result.flagCounter;
+                }
             }
+    
+            if (!openseaData)
+                openseaData = await transformOpenseaResponse(baseSlug);
+
+            rootDomain = openseaData.external_url ? standarizeUrl(openseaData.external_url) : null;
+    
+            // Newer OpenSea profiles do not return twitter in API, only scrape
+            if (!'twitter_username' in openseaData || !openseaData.twitter_username) {
+                const temp = getTwitterUsername(twitterURLs);
+                openseaData.twitter_username = temp.length > 0 ? temp[0] : null;
+            }
+            
+        } else if (openseaUrlType === true) {
+            rateEdgeCase('openseaNotInCollection', edgecaseList, url);
+            return;
         }
-
-        openseaData = await transformOpenseaResponse(baseSlug);
-        rootDomain = openseaData.external_url ? standarizeUrl(openseaData.external_url) : null;
-
-        // Newer OpenSea profiles do not return twitter in API, only scrape
-        if (!'twitter_username' in openseaData || !openseaData.twitter_username) {
-            const temp = getTwitterUsername(twitterURLs);
-            openseaData.twitter_username = temp.length > 0 ? temp[0] : null;
-        }
-
-    } else if (standarizeUrl(url) === 'opensea.io') {
-
-        frontTabCategory = 'opensea';
-        rateEdgeCase('openseaNotInCollection', edgecaseList, url);
-        return;
 
     } else if (standarizeUrl(url) === 'checkmenta.com') {
 
