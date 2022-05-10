@@ -199,6 +199,8 @@ function createButton(frontTab, dataObj, buttonAction) {
 }
 
 function setLogo(rate) {
+    var loading = document.getElementById("logoLoad")
+    loading.src = ""
     var logo = document.getElementById("logoImg")
     if (rate == 'A+') { logo.src = "/img/logo_aa.svg" }
     if (rate == 'A') { logo.src = "/img/logo_a.svg" }
